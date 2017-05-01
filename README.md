@@ -6,7 +6,9 @@ Video labeling software with KCF tracker.
 
 `./video_labeler path_to_images <output_file>`
 
-Draw the initial ROI and press **Enter**. Wherever the tracker fails, press **r** and redraw that frame. Once everything is good, press **Esc** to abort and save ROI file.
+Draw the initial ROI and press **Enter**. Wherever the tracker fails, press **r** and redraw that frame. Once everything is good, press **Esc** to abort and save ROI file. 
+
+*Note: the tool requires a starting ROI on the first frame. If there is no object for tagging the first frame, create an arbitrary ROI and then run the tracker. Later use **x** to remove ROI's where no objects exist.*
 
 ### Controls
 
@@ -29,7 +31,7 @@ Draw the initial ROI and press **Enter**. Wherever the tracker fails, press **r*
 
 To generate images from a video, use ffmpeg `sudo apt-get install ffmpeg`:
 
-`ffmpeg -i <video file> -r 5/1 <path_to_images>/$filename%04d.jpg`
+`ffmpeg -i <video file> -r 5/1 <path_to_images>/$filename%05d.jpg`
 
 ## Build
 
