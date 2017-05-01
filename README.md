@@ -9,6 +9,8 @@ Output format: x y width height
 
 Draw the initial ROI and press **Enter**. Wherever the tracker fails, press **r** and redraw that frame. Once everything is good, press **Esc** to abort and save ROI file. 
 
+If the output_file specified already contains ROIs, these will be loaded up into the labeler.
+
 *Note: the tool requires a starting ROI on the first frame. If there is no object for tagging the first frame, create an arbitrary ROI and then run the tracker. Later use **x** to remove ROI's where no objects exist.*
 
 ### Controls
@@ -25,6 +27,7 @@ Draw the initial ROI and press **Enter**. Wherever the tracker fails, press **r*
 * Mark frame as keyframe: k
 * Iterpolate interval: i (interpolates between keyframes, overrides tracking)
 * Smooth all: s (smoothes rois, doesn't move keyframes)
+* Save current ROIs to file: z
 
 *Everytime an ROI needs to be drawn, press ENTER to continue*
 
