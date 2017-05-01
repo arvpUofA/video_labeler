@@ -28,6 +28,7 @@ void addInfoPanel(cv::Mat &frame, const int curr_frame,
                   const int total_frames, const cv::Rect roi1,
                   const bool show_panel);
 void displayHelp();
+void saveFile(std::string file_name, std::vector<cv::Rect> rectangles);
 cv::Rect operator *(const float s, const cv::Rect r1);
 cv::Rect operator +(const cv::Rect r1, const cv::Rect r2);
 
@@ -109,7 +110,7 @@ int main(int argc, char *argv[])
     cv::setMouseCallback("Labeling", onMouseCb, 0);
 
     /*
-     * start tracking
+     * variables used to hold the state
      */
     int frame_index = 0;
     frame = getFrame(frame_index);
@@ -123,13 +124,37 @@ int main(int argc, char *argv[])
     bool continue_video = true;
     bool show_info_panel = true;
     cv::Rect result;
+    bool data_read = false; // flag for pre-existing data
 
-    std::cout << "Please select a rect as a tracking object and press ENTER!" << std::endl;
+    /*
+     * load pre-existing ROIs from label file
+     */
+    std::ifstream infile(output_file_name.c_str());
+    if(infile.good())
+    {
+        int x, y, w, h;
+        while(infile >> x >> y >> w >> h)
+        {
+            data_read = true;
+            rectangles.push_back(cv::Rect(x,y,w,h));
+            keyframes.push_back(true);
+        }
+        infile.close();
+        if(data_read)
+        {
+            std::cout << "Pre-existing data read from " << output_file_name << std::endl;
+        }
+    }
+
+    if(not data_read)
+    {
+        std::cout << "Please select a rect as a tracking object and press ENTER!" << std::endl;
+    }
     // process all frames
     while(frame_index < filenames.size() && continue_video)
     {
-        //-- Step 1: select tracking box from first frame
-        while(1)
+        //-- Step 1: select tracking box from first frame and no pre-existing data
+        while(not data_read)
         {
             char c = (char) cv::waitKey(wait_time);
             // spaccebar to pause/play
@@ -165,13 +190,19 @@ int main(int argc, char *argv[])
                 keyframes.push_back(true); // the first frame is a key frame
                 break;
             }
-
         }
 
-        //-- Step 2: start tracking
+        //-- Step 2: start tracking if no pre-existing data
         KCFTracker tracker(KCF_HOG, KCF_FIXEDWINDOW, KCF_MULTISCALE, KCF_LAB);
         // initialize with first frame and position of the object
-        tracker.init(roi_selection, frame);
+        if(not data_read)
+        {
+            tracker.init(roi_selection, frame);
+        }
+        else
+        {
+            tracker.init(rectangles.back(), frame);
+        }
 
         int step = 1;
         frame_index += step;
@@ -371,6 +402,18 @@ int main(int argc, char *argv[])
                 show_info_panel = !show_info_panel;
             }
 
+            if(c2 == 'z') // save to file
+            {
+                if(rectangles.size() > 0)
+                {
+                    saveFile(output_file_name.c_str(), rectangles);
+                }
+                else
+                {
+                    std::cout << "No ROIs to save" << std::endl;
+                }
+            }
+
             if(c2 == -1 && !continuous_play) // no key pressed and paused
             {
                 step = 0;
@@ -391,15 +434,7 @@ int main(int argc, char *argv[])
     /*
      * write output file
      */
-    std::ofstream ofile;
-    ofile.open(output_file_name.c_str());
-    for(size_t i = 0; i < rectangles.size(); i++)
-    {
-        ofile << rectangles[i].x << " " << rectangles[i].y << " " <<
-                 rectangles[i].width << " " << rectangles[i].height <<
-                 std::endl;
-    }
-    ofile.close();
+    saveFile(output_file_name.c_str(), rectangles);
 
     return 0;
 
@@ -508,6 +543,26 @@ void displayHelp()
     std::cout << "\tMark frame without object: x" << std::endl;
     std::cout << "\tMove to beginning: b" << std::endl;
     std::cout << "\tShow/hide info panel: t" << std::endl;
+    std::cout << "\tSave labels to file: z" << std::endl;
+}
+
+/**
+ * @brief saveFile      save roi to file
+ * @param file_name     output file
+ * @param rectangles    vector of ROIs
+ */
+void saveFile(std::string file_name, std::vector<cv::Rect> rectangles)
+{
+    std::ofstream ofile;
+    ofile.open(file_name.c_str());
+    for(size_t i = 0; i < rectangles.size(); i++)
+    {
+        ofile << rectangles[i].x << " " << rectangles[i].y << " " <<
+                 rectangles[i].width << " " << rectangles[i].height <<
+                 std::endl;
+    }
+    ofile.close();
+    std::cout << "Data saved to " << file_name << std::endl;
 }
 
 cv::Rect operator *(const float s, const cv::Rect r1)
