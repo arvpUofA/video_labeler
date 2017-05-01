@@ -29,12 +29,12 @@ Draw the initial ROI and press **Enter**. Wherever the tracker fails, press **r*
 
 To generate images from a video, use ffmpeg `sudo apt-get install ffmpeg`:
 
-`ffmpeg -i <video file> -r 1/1 <path_to_images>/$filename%04d.jpg`
+`ffmpeg -i <video file> -r 5/1 <path_to_images>/$filename%04d.jpg`
 
 ## Build
 
 Requirements QT5 and Opencv3. This project was built using ros-kinetic-opencv3. Modify opencv path in Qt project file for a different opencv locaation.
-Use QTCreator to build or do it manually
+Use QTCreator to build (prefered) or do it manually
 
 ```
 mkdir build && cd $_
