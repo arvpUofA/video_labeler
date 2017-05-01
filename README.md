@@ -1,6 +1,7 @@
 # Video labeler
 
-Video labeling software with KCF tracker.
+Video labeling software with KCF tracker. 
+Output format: x y width height
 
 ## Usage
 
