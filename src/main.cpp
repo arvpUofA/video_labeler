@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
     /*
      * variables used to hold the state
      */
-    int frame_index = 0;
+    size_t frame_index = 0;
     frame = getFrame(frame_index);
     std::cout << "The resolution of video is : " << frame.cols << "x" << frame.rows << std::endl;
 
@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
         {
             // get frame
             frame = getFrame(frame_index);
-            if(rectangles.size()>frame_index)
+            if(rectangles.size() > frame_index)
             { // already computed
                 result = rectangles[frame_index];
             }
@@ -316,20 +316,20 @@ int main(int argc, char *argv[])
             {
                 // compute over under (keyframes)
                 int over = frame_index, under = frame_index;
-                while(over<keyframes.size())
+                while(over < keyframes.size())
                 {
                     if(keyframes[over])
                         break;
                     over++;
                 }
-                while(under>0)
+                while(under > 0)
                 {
                     if(keyframes[under])
                         break;
                     under--;
                 }
 
-                if(over<(int)keyframes.size() && under>=0)
+                if(over < (int)keyframes.size() && under >= 0)
                 {
                     float jump = over - under;
                     for(int i=under+1; i<over; i++)
