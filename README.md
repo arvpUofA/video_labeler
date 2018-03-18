@@ -3,6 +3,18 @@
 Video labeling software with KCF tracker. 
 Output format: x y width height
 
+## Getting Started
+#### Requirements
+* Qt 5.X.X (comes with Qt Creator download)
+* OpenCV 3.X.X
+* [QT Creator](https://www.qt.io/download)
+
+After downloading the repository, open the project in Qt Creator. Then apply the following configurations:
+1. Change the Qt version to 5.X.X in `Projects > Manage Kits... > Build & Run > Desktop` (where Desktop is usually the default kit) 
+2. Edit the video_labeler.pro file so that INCLUDEPATH adds your opencv3 include directories. For the opencv3 version that comes with kinetic, this is `/opt/ros/kinetic/include/<OPEN_CV_VERSION>/opencv`. Check your directories to include the correct version.
+3. Build
+4. Run the `video_labeler` executable in the build directory according to the usage guide
+
 ## Usage
 
 `./video_labeler path_to_images <output_file>`
@@ -36,14 +48,3 @@ If the output_file specified already contains ROIs, these will be loaded up into
 To generate images from a video, use ffmpeg `sudo apt-get install ffmpeg`:
 
 `ffmpeg -i <video file> -r 5/1 <path_to_images>/$filename%05d.jpg`
-
-## Build
-
-Requirements QT5 and Opencv3. This project was built using ros-kinetic-opencv3. Modify opencv path in Qt project file for a different opencv locaation.
-Use QTCreator to build (prefered) or do it manually
-
-```
-mkdir build && cd $_
-qmake ../
-make
-```
