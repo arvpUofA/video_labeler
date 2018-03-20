@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
     std::vector<cv::Rect> rectangles;   // stores all the rois
     std::vector<bool> keyframes;
     cv::Scalar color, color_green(0,255,0), color_blue(255,0,0), color_red(0,0,255);
-    bool continuous_play = true;
+    bool continuous_play = false;
     int wait_time = 50;
     bool continue_video = true;
     bool show_info_panel = true;
@@ -369,7 +369,7 @@ int main(int argc, char *argv[])
                     step = 0;
             }
 
-            if(c2 == 'h') //  next frame
+            if(c2 == 'j') //  next frame
             {
                 if(!continuous_play)
                 {
@@ -377,7 +377,7 @@ int main(int argc, char *argv[])
                 }
             }
 
-            if(c2 == 'j') // previous frame
+            if(c2 == 'h') // previous frame
             {
                 if(!continuous_play)
                 {

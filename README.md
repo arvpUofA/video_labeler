@@ -1,13 +1,15 @@
 # Video labeler
 
-Video labeling software with KCF tracker. 
+Video labeling software with KCF tracker.
 Output format: x y width height
+
+_Note:_ x y indicate the coordinates of the top left corner
 
 ## Usage
 
 `./video_labeler path_to_images <output_file>`
 
-Draw the initial ROI and press **Enter**. Wherever the tracker fails, press **r** and redraw that frame. Once everything is good, press **Esc** to abort and save ROI file. 
+Draw the initial ROI and press **Enter**. Wherever the tracker fails, press **r** and redraw that frame. Once everything is good, press **Esc** to abort and save ROI file.
 
 If the output_file specified already contains ROIs, these will be loaded up into the labeler.
 
@@ -15,21 +17,33 @@ If the output_file specified already contains ROIs, these will be loaded up into
 
 ### Controls
 
-* Pause/play: space bar
-* Go forwards/backwards on frame: h | j
-* Slow/Speed up video y | u
-* Finish labeling: esc
-* Move to beginning: b
-* Show/hide info panel: t
-* Non-destructive marking: w (draws ROI on frame but doesn't update tracker)
-* Reset(destructive marking): r (draws ROI on frame and updates tracker for following frames)
-* Mark frame without object: x
-* Mark frame as keyframe: k
-* Iterpolate interval: i (interpolates between keyframes, overrides tracking)
-* Smooth all: s (smoothes rois, doesn't move keyframes)
-* Save current ROIs to file: z
+Use the mouse to draw bounding rectangles for the desired object while the video.
+is paused. ROIs are confirmed by pressing the <kbd>enter</kbd> key.
 
-*Everytime an ROI needs to be drawn, press ENTER to continue*
+The general principle of the application is to manually draw ROIs as little as
+possible. This can be done by using _keyframes_ wherein the KCF tracker attempt
+to interpolate ROIs in the intervals between them.
+
+#### Functional Controls
+|       Key        |    Action    |
+|:----------------:|:-------------|
+| <kbd>space</kbd>             | Pause/Play |
+| <kbd>y</kbd><kbd>u</kbd>     | Slow/Speed up video |
+| <kbd>h</kbd><kbd>j</kbd>     | Go backwards/forwards one frame |
+| <kbd>x</kbd>     | Mark frame without object |
+| <kbd>k</kbd>     | Mark frame as keyframe |
+| <kbd>w</kbd>     | Non-destructive marking. Draws ROI on frame but doesn't update tracker |
+| <kbd>r</kbd>     | Reset (destructive marking). Draws ROI on frame and updates tracker for following frames |
+| <kbd>i</kbd>     | Interpolates interval between keyframes, overrides tracking |
+| <kbd>s</kbd>     | Smooth all rois, doesn't move keyframes |
+| <kbd>z</kbd>     | Save current ROIs to file |
+| <kbd>esc</kbd>   | Finish labeling |
+
+#### Additional Controls
+|       Key        |    Action    |
+|:----------------:|:-------------|
+| <kbd>b</kbd>     | Move to beginning |
+| <kbd>t</kbd>     | Show/Hide info panel |
 
 ### Image generation
 
