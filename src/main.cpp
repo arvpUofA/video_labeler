@@ -41,6 +41,7 @@ std::vector<std::string> filenames; // image files
 bool roi_selection_flag = false;    // set to true in mouse clicked and selecting
 cv::Rect roi_selection;             // selected ROI
 cv::Point roi_origin;               // starting point of ROI
+cv::Point mouse_pos;
 // image
 cv::Mat image;                      // cloned frame for processing
 cv::Mat frame;                      // raw image frame
@@ -118,7 +119,7 @@ int main(int argc, char *argv[])
 
     std::vector<cv::Rect> rectangles;   // stores all the rois
     std::vector<bool> keyframes;
-    cv::Scalar color, color_green(0,255,0), color_blue(255,0,0), color_red(0,0,255);
+    cv::Scalar color, color_green(0,255,0), color_blue(255,0,0), color_red(0,0,255), color_black(0, 0, 0);
     bool continuous_play = false;
     int wait_time = 50;
     bool continue_video = true;
@@ -167,10 +168,17 @@ int main(int argc, char *argv[])
             // clone frame to image
             frame.copyTo(image);
 
-            // draw on image
+            // draw roi on image
             cv::rectangle(image, cv::Point(roi_selection.x, roi_selection.y),
                           cv::Point(roi_selection.x + roi_selection.width, roi_selection.y + roi_selection.height),
                           color_red, 2);
+
+            // draw crosshairs
+            if(not roi_selection_flag) {
+                cv::line(image, cv::Point(mouse_pos.x, 0), cv::Point(mouse_pos.x, frame.rows), color_black, 2);
+                cv::line(image, cv::Point(0, mouse_pos.y), cv::Point(frame.cols, mouse_pos.y), color_black, 2);
+            }
+
             addInfoPanel(image, frame_index, filenames.size(), roi_selection, show_info_panel);
             cv::imshow("Labeling", image);
 
@@ -466,6 +474,10 @@ static void onMouseCb(int event, int x, int y, int, void* )
         roi_selection.width = std::abs(x - roi_origin.x);
         roi_selection.height = std::abs(y - roi_origin.y);
         roi_selection &= cv::Rect(0, 0, image.cols, image.rows);
+    }
+    else {
+        mouse_pos.x = x;
+        mouse_pos.y = y;
     }
 
     switch(event)

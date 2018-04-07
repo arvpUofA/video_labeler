@@ -14,7 +14,8 @@ SOURCES += src/main.cpp \
            tracker/fhog.cpp
 
 # opencv3 from ros-kinetic-opencv3
-INCLUDEPATH += /opt/ros/kinetic/include/opencv-3.3.1/opencv
+INCLUDEPATH += /opt/ros/kinetic/include/opencv-3.3.1/ \
+               /opt/ros/kinetic/include/opencv-3.3.1/opencv
 LIBS += -L/opt/ros/kinetic/lib -lopencv_core3 \
                                -lopencv_highgui3 \
                                -lopencv_imgcodecs3 \
