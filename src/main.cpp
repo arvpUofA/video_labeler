@@ -27,10 +27,21 @@ static void onMouseCb(int event, int x, int y, int, void* );
 void addInfoPanel(cv::Mat &frame, const int curr_frame,
                   const int total_frames, const cv::Rect roi1,
                   const bool show_panel);
+void drawCrosshairs(cv::Mat &frame);
 void displayHelp();
 void saveFile(std::string file_name, std::vector<cv::Rect> rectangles);
 cv::Rect operator *(const float s, const cv::Rect r1);
 cv::Rect operator +(const cv::Rect r1, const cv::Rect r2);
+
+/*
+ * Constants
+ * =========
+ */
+
+const cv::Scalar color_green(0,255,0);
+const cv::Scalar color_blue(255,0,0);
+const cv::Scalar color_red(0,0,255);
+const cv::Scalar color_black(0, 0, 0);
 
 /*
  * Globals
@@ -119,7 +130,7 @@ int main(int argc, char *argv[])
 
     std::vector<cv::Rect> rectangles;   // stores all the rois
     std::vector<bool> keyframes;
-    cv::Scalar color, color_green(0,255,0), color_blue(255,0,0), color_red(0,0,255), color_black(0, 0, 0);
+    cv::Scalar color;
     bool continuous_play = false;
     int wait_time = 50;
     bool continue_video = true;
@@ -174,10 +185,7 @@ int main(int argc, char *argv[])
                           color_red, 2);
 
             // draw crosshairs
-            if(not roi_selection_flag) {
-                cv::line(image, cv::Point(mouse_pos.x, 0), cv::Point(mouse_pos.x, frame.rows), color_black, 2);
-                cv::line(image, cv::Point(0, mouse_pos.y), cv::Point(frame.cols, mouse_pos.y), color_black, 2);
-            }
+            drawCrosshairs(image);
 
             addInfoPanel(image, frame_index, filenames.size(), roi_selection, show_info_panel);
             cv::imshow("Labeling", image);
@@ -261,18 +269,23 @@ int main(int argc, char *argv[])
             if(c2 == 'r') // reset
             {
                 cv::setMouseCallback("Labeling", onMouseCb, 0);
+                bool making_roi = false;
+
                 while(1)
                 {
-                    char c = (char) cv::waitKey(5);
+                    char c = (char) cv::waitKey(5); // used as a delay
                     frame.copyTo(image);
                     cv::rectangle(image, cv::Point(roi_selection.x, roi_selection.y),
                                   cv::Point(roi_selection.x + roi_selection.width, roi_selection.y + roi_selection.height),
                                   color_red, 2);
                     addInfoPanel(image, frame_index, filenames.size(), roi_selection, show_info_panel);
+                    drawCrosshairs(image);
                     cv::imshow("Labeling", image);
 
-                    if(c == 13)
-                    { // wait for RETURN
+                    if(roi_selection_flag) {
+                        making_roi = true;
+                    }
+                    else if(!roi_selection_flag && making_roi) {
                         // initialize tracker
                         tracker.init(roi_selection, frame);
                         rectangles[frame_index] = roi_selection;
@@ -289,18 +302,23 @@ int main(int argc, char *argv[])
             if(c2 == 'w') // non-destructive correction
             {
                 cv::setMouseCallback("Labeling", onMouseCb, 0);
+                bool making_roi = false;
+
                 while(1)
                 {
-                    char c = (char) cv::waitKey(5);
+                    char c = (char) cv::waitKey(5); // used as a delay
                     frame.copyTo(image);
                     cv::rectangle(image, cv::Point(roi_selection.x, roi_selection.y),
                                   cv::Point(roi_selection.x + roi_selection.width, roi_selection.y + roi_selection.height),
                                   color_red, 2);
                     addInfoPanel(image, frame_index, filenames.size(), roi_selection, show_info_panel);
+                    drawCrosshairs(image);
                     cv::imshow("Labeling", image);
 
-                    if(c == 13)
-                    { // wait for RETURN
+                    if(roi_selection_flag) {
+                        making_roi = true;
+                    }
+                    else if(!roi_selection_flag && making_roi) {
                         rectangles[frame_index] = roi_selection;
                         keyframes[frame_index] = true;
 
@@ -535,6 +553,17 @@ void addInfoPanel(cv::Mat &frame, const int curr_frame,
                 std::to_string(roi1.height);
     line_position += line_jump;
     cv::putText(frame, output_text, cv::Point2f(5, line_position), 4, font_scale, color_gray, 2);
+}
+
+/**
+ * @breif drawCrosshairs  draws crosshair at cursor position
+ * @param frame           cv::Mat to add crosshair to
+ */
+void drawCrosshairs(cv::Mat &frame) {
+    if(not roi_selection_flag) {
+        cv::line(image, cv::Point(mouse_pos.x, 0), cv::Point(mouse_pos.x, frame.rows), color_black, 2);
+        cv::line(image, cv::Point(0, mouse_pos.y), cv::Point(frame.cols, mouse_pos.y), color_black, 2);
+    }
 }
 
 /**
