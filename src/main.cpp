@@ -573,7 +573,7 @@ void displayHelp()
 {
     std::cout << "CONTROLS" << std::endl;
     std::cout << "\tPause/play: space bar" << std::endl;
-    std::cout << "\tGo forwards/backwards on frame: h | j" << std::endl;
+    std::cout << "\tGo forwards/backwards on frame: j | h" << std::endl;
     std::cout << "\tSlow/Speed up video y | u" << std::endl;
     std::cout << "\tFinish labeling: esc" << std::endl;
     std::cout << "\tInterpolate interval: i" << std::endl;
