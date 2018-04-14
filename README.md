@@ -64,4 +64,4 @@ to interpolate ROIs in the intervals between them.
 
 To generate images from a video, use ffmpeg `sudo apt-get install ffmpeg`:
 
-`ffmpeg -i <video file> -r 5/1 <path_to_images>/$filename%05d.jpg`
+`ffmpeg -i <video file> -r 5/1 <path_to_images>/<data_folder_name>$filename%05d.jpg`
