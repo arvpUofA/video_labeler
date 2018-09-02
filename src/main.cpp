@@ -22,10 +22,10 @@
  * Function prototypes
  * ===================
  */
-cv::Mat getFrame(const int i);
+cv::Mat getFrame(size_t i);
 static void onMouseCb(int event, int x, int y, int, void* );
-void addInfoPanel(cv::Mat &frame, const int curr_frame,
-                  const int total_frames, const cv::Rect roi1,
+void addInfoPanel(cv::Mat &frame, size_t curr_frame,
+                  size_t total_frames, const cv::Rect roi1,
                   const bool show_panel);
 void drawCrosshairs(cv::Mat &frame);
 void displayHelp();
@@ -42,22 +42,24 @@ const cv::Scalar color_green(0,255,0);
 const cv::Scalar color_blue(255,0,0);
 const cv::Scalar color_red(0,0,255);
 const cv::Scalar color_black(0, 0, 0);
+const cv::Scalar color_gray(200,200,200);
+const cv::Scalar color_white(255,255,255);
 
 /*
  * Globals
  * =======
  */
-std::vector<std::string> filenames; // image files
+static std::vector<std::string> filenames; // image files
 // ROI stuff
-bool roi_selection_flag = false;    // set to true in mouse clicked and selecting
-cv::Rect roi_selection;             // selected ROI
-cv::Point roi_origin;               // starting point of ROI
-cv::Point mouse_pos;
+static bool roi_selection_flag = false;    // set to true in mouse clicked and selecting
+static cv::Rect roi_selection;             // selected ROI
+static cv::Point roi_origin;               // starting point of ROI
+static cv::Point mouse_pos;
 // image
-cv::Mat image;                      // cloned frame for processing
-cv::Mat frame;                      // raw image frame
+static cv::Mat image;                      // cloned frame for processing
+static cv::Mat frame;                      // raw image frame
 // tracking stuff
-int track_object = 0;               // handle tracking status
+static int track_object = 0;               // handle tracking status
 
 /*
  * Main
@@ -100,6 +102,7 @@ int main(int argc, char *argv[])
                 "/" + it->toStdString();
         filenames.push_back(filename);
     }
+    size_t filenames_size = filenames.size();
     if(filenames.empty())
     {
         std::cerr << "ERROR: No input images found." << std::endl;
@@ -107,7 +110,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-        std::cout << "Loaded " << filenames.size() << " images" << std::endl;
+        std::cout << "Loaded " << filenames_size << " images" << std::endl;
     }
 
     /*
@@ -119,7 +122,7 @@ int main(int argc, char *argv[])
      * initialize opencv window
      */
     cv::namedWindow("Labeling", 0);
-    cv::setMouseCallback("Labeling", onMouseCb, 0);
+    cv::setMouseCallback("Labeling", onMouseCb, nullptr);
 
     /*
      * variables used to hold the state
@@ -163,13 +166,13 @@ int main(int argc, char *argv[])
         std::cout << "Please select a rect as a tracking object and press ENTER!" << std::endl;
     }
     // process all frames
-    while(frame_index < filenames.size() && continue_video)
+    while(frame_index < filenames_size && continue_video)
     {
         //-- Step 1: select tracking box from first frame and no pre-existing data
         while(not data_read)
         {
-            char c = (char) cv::waitKey(wait_time);
-            // spaccebar to pause/play
+            char c = static_cast<char>(cv::waitKey(wait_time));
+            // spacebar to pause/play
             if(c == 32)
                 continuous_play = !continuous_play;
 
@@ -187,7 +190,7 @@ int main(int argc, char *argv[])
             // draw crosshairs
             drawCrosshairs(image);
 
-            addInfoPanel(image, frame_index, filenames.size(), roi_selection, show_info_panel);
+            addInfoPanel(image, frame_index, filenames_size, roi_selection, show_info_panel);
             cv::imshow("Labeling", image);
 
             // handle keyboard input
@@ -196,7 +199,7 @@ int main(int argc, char *argv[])
                 std::cout << "Tracking is terminated!" << std::endl;
                 return 0;
             }
-            if(c == 13)
+            if(c == '\n' || c == '\r')
             { // ENTER key to move forward with ROI
                 std::cout << "The tracking object is selected!" << std::endl;
                 std::cout << "\t" << "tracking object:" << std::endl;
@@ -205,6 +208,18 @@ int main(int argc, char *argv[])
                 rectangles.push_back(roi_selection);
                 keyframes.push_back(true); // the first frame is a key frame
                 break;
+            }
+
+            if(!continuous_play) {
+                if(c == 'j') //  next frame
+                {
+                    frame_index += frame_index + 1 < filenames_size ? 1 : 0;
+                }
+
+                if(c == 'h') // previous frame
+                {
+                    frame_index -= frame_index == 0 ? 0 : 1;
+                }
             }
         }
 
@@ -220,8 +235,11 @@ int main(int argc, char *argv[])
             tracker.init(rectangles.back(), frame);
         }
 
-        int step = 1;
-        frame_index += step;
+        size_t step = 1;
+        if (frame_index + 1 < filenames_size) {
+            frame_index += 1;
+        }
+
         char c2 = -1;
 
         while(continue_video)
@@ -254,11 +272,11 @@ int main(int argc, char *argv[])
             cv::rectangle(frame, cv::Point(result.x, result.y),
                           cv::Point(result.x + result.width, result.y + result.height),
                           color, 2, 8);
-            addInfoPanel(frame, frame_index, filenames.size(), result, show_info_panel);
+            addInfoPanel(frame, frame_index, filenames_size, result, show_info_panel);
             cv::imshow("Labeling", frame);
 
             // wait key and process keys
-            c2 = (char) cv::waitKey(wait_time);
+            c2 = static_cast<char>(cv::waitKey(wait_time));
 
             if(c2 == 27) // terminate
             {
@@ -268,17 +286,17 @@ int main(int argc, char *argv[])
 
             if(c2 == 'r') // reset
             {
-                cv::setMouseCallback("Labeling", onMouseCb, 0);
+                cv::setMouseCallback("Labeling", onMouseCb, nullptr);
                 bool making_roi = false;
 
                 while(1)
                 {
-                    char c = (char) cv::waitKey(5); // used as a delay
+                    cv::waitKey(5); // used as a delay
                     frame.copyTo(image);
                     cv::rectangle(image, cv::Point(roi_selection.x, roi_selection.y),
                                   cv::Point(roi_selection.x + roi_selection.width, roi_selection.y + roi_selection.height),
                                   color_red, 2);
-                    addInfoPanel(image, frame_index, filenames.size(), roi_selection, show_info_panel);
+                    addInfoPanel(image, frame_index, filenames_size, roi_selection, show_info_panel);
                     drawCrosshairs(image);
                     cv::imshow("Labeling", image);
 
@@ -291,8 +309,9 @@ int main(int argc, char *argv[])
                         rectangles[frame_index] = roi_selection;
                         keyframes[frame_index] = true;
                         // remove following rectangles
-                        rectangles.erase(rectangles.begin() + frame_index + 1, rectangles.end());
-                        keyframes.erase(keyframes.begin() + frame_index + 1);
+                        long index_diff = static_cast<long>(frame_index);
+                        rectangles.erase(rectangles.begin() + index_diff + 1, rectangles.end());
+                        keyframes.erase(keyframes.begin() + index_diff + 1);
                         break;
                     }
                 }
@@ -301,12 +320,12 @@ int main(int argc, char *argv[])
 
             if(c2 == 'w') // non-destructive correction
             {
-                cv::setMouseCallback("Labeling", onMouseCb, 0);
+                cv::setMouseCallback("Labeling", onMouseCb, nullptr);
                 bool making_roi = false;
 
                 while(1)
                 {
-                    char c = (char) cv::waitKey(5); // used as a delay
+                    cv::waitKey(5); // used as a delay
                     frame.copyTo(image);
                     cv::rectangle(image, cv::Point(roi_selection.x, roi_selection.y),
                                   cv::Point(roi_selection.x + roi_selection.width, roi_selection.y + roi_selection.height),
@@ -341,7 +360,8 @@ int main(int argc, char *argv[])
             if(c2 == 'i') // interpolate interval
             {
                 // compute over under (keyframes)
-                int over = frame_index, under = frame_index;
+                size_t over = frame_index, under = frame_index;
+
                 while(over < keyframes.size())
                 {
                     if(keyframes[over])
@@ -355,13 +375,13 @@ int main(int argc, char *argv[])
                     under--;
                 }
 
-                if(over < (int)keyframes.size() && under >= 0)
+                if(over < keyframes.size())
                 {
                     float jump = over - under;
-                    for(int i=under+1; i<over; i++)
+                    for(size_t i=under+1; i<over; i++)
                     {
-                        rectangles[i] = ((float)(jump-(i-under))/jump) * rectangles[under]
-                                         + ((float)(jump-(over-i))/jump) * rectangles[over];
+                        rectangles[i] = (static_cast<float>(jump-(i-under))/jump) * rectangles[under]
+                                         + (static_cast<float>(jump-(over-i))/jump) * rectangles[over];
                     }
                 }
             }
@@ -414,7 +434,7 @@ int main(int argc, char *argv[])
             if(c2 == 'y') // speed down video
             {
                 wait_time += 10;
-                wait_time == std::min(wait_time, 1000);
+                wait_time = std::min(wait_time, 1000);
             }
 
             if(c2 == 'u') // speed up video
@@ -471,7 +491,7 @@ int main(int argc, char *argv[])
  * @param i         image index
  * @return          cv::Mat frame
  */
-cv::Mat getFrame(const int i)
+cv::Mat getFrame(size_t i)
 {
     cv::Mat frame = cv::imread(filenames[i]);
     return frame;
@@ -523,20 +543,17 @@ static void onMouseCb(int event, int x, int y, int, void* )
  * @param roi1          selected roi
  * @param show_panel    flag to show this info
  */
-void addInfoPanel(cv::Mat &frame, const int curr_frame,
-                  const int total_frames, const cv::Rect roi1,
+void addInfoPanel(cv::Mat &frame, size_t curr_frame,
+                  size_t total_frames, const cv::Rect roi1,
                   const bool show_panel)
 {
     if(!show_panel) return;
 
-    // formatting
-    cv::Scalar color_gray = cv::Scalar(200,200,200);
-    cv::Scalar color_white = cv::Scalar(255,255,255);
-    float panel_transparancy = 1.2;
+    double panel_transparancy = 1.2;
     int line_position = 25;
     double font_scale = 0.75;
     cv::Rect panel_position = cv::Rect(0,0,250,70);
-    int line_jump = 35 * font_scale;
+    int line_jump = static_cast<int>(35 * font_scale);
 
     // draw a semi transparent panel
     frame(panel_position) = frame(panel_position) / panel_transparancy;
@@ -609,10 +626,10 @@ void saveFile(std::string file_name, std::vector<cv::Rect> rectangles)
 cv::Rect operator *(const float s, const cv::Rect r1)
 {
     cv::Rect r2;
-    r2.x = r1.x*s;
-    r2.y = r1.y*s;
-    r2.width = r1.width*s;
-    r2.height = r1.height*s;
+    r2.x = static_cast<int>(r1.x * s);
+    r2.y = static_cast<int>(r1.y * s);
+    r2.width = static_cast<int>(r1.width * s);
+    r2.height = static_cast<int>(r1.height * s);
     return r2;
 }
 
