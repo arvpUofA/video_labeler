@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
         while(not data_read)
         {
             char c = static_cast<char>(cv::waitKey(wait_time));
-            // spaccebar to pause/play
+            // spacebar to pause/play
             if(c == 32)
                 continuous_play = !continuous_play;
 
@@ -209,6 +209,18 @@ int main(int argc, char *argv[])
                 keyframes.push_back(true); // the first frame is a key frame
                 break;
             }
+
+            if(!continuous_play) {
+                if(c == 'j') //  next frame
+                {
+                    frame_index += frame_index + 1 < filenames_size ? 1 : 0;
+                }
+
+                if(c == 'h') // previous frame
+                {
+                    frame_index -= frame_index == 0 ? 0 : 1;
+                }
+            }
         }
 
         //-- Step 2: start tracking if no pre-existing data
@@ -224,7 +236,10 @@ int main(int argc, char *argv[])
         }
 
         size_t step = 1;
-        frame_index += step;
+        if (frame_index + 1 < filenames_size) {
+            frame_index += 1;
+        }
+
         char c2 = -1;
 
         while(continue_video)
