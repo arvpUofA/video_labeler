@@ -2,6 +2,7 @@
 
 Video labeling software with KCF tracker.
 Output format: x y width height
+YOLO format: class, centerX, centerY, box width, box height (all in percentages of image size)
 
 _Note:_ x y indicate the coordinates of the top left corner
 
@@ -19,7 +20,7 @@ After downloading the repository, open the project in Qt Creator. Then apply the
 
 ## Usage
 
-`./video_labeler path_to_images <output_file>`
+`./video_labeler path_to_images <class_number>`
 
 Draw the initial ROI and press <kbd>Enter</kbd>. Wherever the tracker fails, press
 <kbd>r</kbd> and redraw that frame. Once everything is good, press <kbd>Esc</kbd> to abort and save ROI file.
@@ -59,6 +60,11 @@ to interpolate ROIs in the intervals between them.
 |:----------------:|:-------------|
 | <kbd>b</kbd>     | Move to beginning |
 | <kbd>t</kbd>     | Show/Hide info panel |
+
+## Known Bugs
+
+If your output files last label has no boxes/or a zero (0,0,0,0) the program will crash
+
 
 ## Image generation
 

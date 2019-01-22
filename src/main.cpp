@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <boost/algorithm/string.hpp>
 
 #include <QDir>
 #include <QStringList>
@@ -60,6 +61,7 @@ static cv::Mat image;                      // cloned frame for processing
 static cv::Mat frame;                      // raw image frame
 // tracking stuff
 static int track_object = 0;               // handle tracking status
+std::string image_directory;               // image directory passed by argc
 
 /*
  * Main
@@ -68,6 +70,7 @@ int main(int argc, char *argv[])
 {
     std::string output_file_name = "ground_truth.txt";
     std::cout << "Labeling application started" << std::endl;
+    ::image_directory = (std::string)argv[1];
 
     /*
      * KCF Params
@@ -621,6 +624,28 @@ void saveFile(std::string file_name, std::vector<cv::Rect> rectangles)
     }
     ofile.close();
     std::cout << "Data saved to " << file_name << std::endl;
+
+    std::ofstream ofile2;
+    std::string outputFile = file_name + "_yolo_labels";
+    ofile2.open(outputFile.c_str());
+
+    if(image_directory[image_directory.size()-1] == 47) {        // If argc[1] has a trailing "/" remove it
+        image_directory.pop_back();
+    }
+
+    for(size_t i = 0; i < rectangles.size(); i++)
+    {
+        std::vector<std::string> splitString;
+        boost::split(splitString, (const std::string)filenames[i], boost::is_any_of("/"));
+
+        ofile2 << file_name.c_str() << "," << (double)(rectangles[i].x+(rectangles[i].width/2))/frame.cols << "," <<
+                 (double)(rectangles[i].y+(rectangles[i].height/2))/frame.rows << "," <<
+                 (double)(rectangles[i].width)/frame.cols << "," << (double)(rectangles[i].height)/frame.rows <<
+                 " "  << image_directory << "/" << splitString[splitString.size()-1] <<
+                 std::endl;
+    }
+    ofile2.close();
+    std::cout << "YOLO Data saved to " << outputFile << std::endl;
 }
 
 cv::Rect operator *(const float s, const cv::Rect r1)
