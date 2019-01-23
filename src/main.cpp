@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
 {
     std::string output_file_name = "ground_truth.txt";
     std::cout << "Labeling application started" << std::endl;
-    ::image_directory = (std::string)argv[1];
+    image_directory = (std::string)argv[1];
 
     /*
      * KCF Params
@@ -629,7 +629,7 @@ void saveFile(std::string file_name, std::vector<cv::Rect> rectangles)
     std::string outputFile = file_name + "_yolo_labels";
     ofile2.open(outputFile.c_str());
 
-    if(image_directory[image_directory.size()-1] == 47) {        // If argc[1] has a trailing "/" remove it
+    if(image_directory[image_directory.size()-1] == '/') {        // If argc[1] has a trailing "/" remove it
         image_directory.pop_back();
     }
 
@@ -638,10 +638,13 @@ void saveFile(std::string file_name, std::vector<cv::Rect> rectangles)
         std::vector<std::string> splitString;
         boost::split(splitString, (const std::string)filenames[i], boost::is_any_of("/"));
 
-        ofile2 << file_name.c_str() << "," << (double)(rectangles[i].x+(rectangles[i].width/2))/frame.cols << "," <<
-                 (double)(rectangles[i].y+(rectangles[i].height/2))/frame.rows << "," <<
-                 (double)(rectangles[i].width)/frame.cols << "," << (double)(rectangles[i].height)/frame.rows <<
-                 " "  << image_directory << "/" << splitString[splitString.size()-1] <<
+        ofile2 << file_name.c_str() << "," << 
+                 static_cast<double>(rectangles[i].x+(rectangles[i].width/2))/frame.cols << "," <<
+                 static_cast<double>(rectangles[i].y+(rectangles[i].height/2))/frame.rows << "," <<
+                 static_cast<double>(rectangles[i].width)/frame.cols << "," << 
+                 static_cast<double>(rectangles[i].height)/frame.rows << " "  << 
+                 image_directory << "/" << 
+                 splitString[splitString.size()-1] <<
                  std::endl;
     }
     ofile2.close();
