@@ -1,10 +1,10 @@
 # Video labeler
 
-Video labeling software with KCF tracker.
-Default In/Out Label Format: YOLO
-Compatible ROI Formats: yolo, cv
-yolo format: class, centerX, centerY, box width, box height (all in percentages of image size)
-cv format: top left X, top left Y, width, height (all in pixel values)
+Video labeling software with KCF tracker.  
+Default In/Out Label Format: YOLO  
+Compatible ROI Formats: yolo, cv  
+yolo format: class, centerX, centerY, box width, box height (all in percentages of image size)  
+cv format: top left X, top left Y, width, height (all in pixel values)  
 
 ## Known Bugs
 
