@@ -3,6 +3,16 @@
  * args: input_image_folder output_file(optional)
  */
 
+/*
+ * Bounding Box Formats: This script is designed around the use of cv2 rectangles
+ * by which use the ROI's top left corner, width and height are converted into a 
+ * cv::rectangle format.
+ *
+ * CV Format - Point pt1 (Top Left), Point pt2 (Bottom Right) (all in raw pixel values)
+ * YOLO Format - centerX, centerY, box width, box height (all in percentages of image size)
+ *  
+*/
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -33,6 +43,9 @@ void displayHelp();
 void saveFile(std::string file_name, std::vector<cv::Rect> rectangles);
 cv::Rect operator *(const float s, const cv::Rect r1);
 cv::Rect operator +(const cv::Rect r1, const cv::Rect r2);
+cv::Rect convert_yolo_cv(const float x, const float y, const float w, 
+                         const float h, const float X, const float Y);
+
 
 /*
  * Constants
@@ -62,6 +75,8 @@ static cv::Mat frame;                      // raw image frame
 // tracking stuff
 static int track_object = 0;               // handle tracking status
 std::string image_directory;               // image directory passed by argc
+std::string label_format = "yolo";         // label format
+std::string output_format = "yolo";
 
 /*
  * Main
@@ -70,7 +85,8 @@ int main(int argc, char *argv[])
 {
     std::string output_file_name = "ground_truth.txt";
     std::cout << "Labeling application started" << std::endl;
-    image_directory = (std::string)argv[1];
+    std::string image_directory = argv[1];
+
 
     /*
      * KCF Params
@@ -85,12 +101,22 @@ int main(int argc, char *argv[])
      */
     if(argc < 2)
     { // read the input image folder name
-        std::cerr << "Usage: video_labeler input_folder <output_file_name>" << std::endl;
+        std::cerr << "Usage: video_labeler input_folder <class number> \ 
+                      <label_format> (Default YOLO) \ 
+                      <output_format> (Default YOLO)" << std::endl;
         exit(1);
     }
     if(argc > 2)
     {
         output_file_name = argv[2];
+    }
+    if(argc > 3)
+    {
+        label_format = argv[3];
+    }
+    if(argc > 4)
+    {
+        output_format = argv[4];
     }
 
     /*
@@ -133,6 +159,7 @@ int main(int argc, char *argv[])
     size_t frame_index = 0;
     frame = getFrame(frame_index);
     std::cout << "The resolution of video is : " << frame.cols << "x" << frame.rows << std::endl;
+    std::cout << "The label format is : " << label_format.c_str() << std::endl;
 
     std::vector<cv::Rect> rectangles;   // stores all the rois
     std::vector<bool> keyframes;
@@ -149,19 +176,38 @@ int main(int argc, char *argv[])
      */
     std::ifstream infile(output_file_name.c_str());
     if(infile.good())
+
     {
-        int x, y, w, h;
-        while(infile >> x >> y >> w >> h)
-        {
+
+        if (label_format.compare("cv") == 0) {
+
+          int c, x, y, w, h;
+          while(infile >> x >> y >> w >> h)
+          {
             data_read = true;
             rectangles.push_back(cv::Rect(x,y,w,h));
             keyframes.push_back(true);
-        }
-        infile.close();
-        if(data_read)
-        {
-            std::cout << "Pre-existing data read from " << output_file_name << std::endl;
-        }
+          }
+          infile.close();
+          if(data_read)
+            {
+              std::cout << "Pre-existing CV data read from " << output_file_name << std::endl;
+            }
+        } else {
+            float c, x, y, w, h;
+            std::string file_dir;
+            while(infile >> c >> x >> y >> w >> h >> file_dir)
+            {
+              data_read = true;
+              rectangles.push_back(convert_yolo_cv(x, y, w, h, frame.cols, frame.rows));
+              keyframes.push_back(true);
+            }
+            infile.close();
+            if(data_read)
+              {
+                std::cout << "Pre-existing YOLO data read from " << output_file_name << std::endl;
+              }
+          }
     }
 
     if(not data_read)
@@ -171,6 +217,7 @@ int main(int argc, char *argv[])
     // process all frames
     while(frame_index < filenames_size && continue_video)
     {
+
         //-- Step 1: select tracking box from first frame and no pre-existing data
         while(not data_read)
         {
@@ -267,11 +314,24 @@ int main(int argc, char *argv[])
                 rectangles.push_back(result);
                 keyframes.push_back(false);
             }
+
+            // assert values within range
+
+            result.x = std::max(0, result.x);
+            if ((result.x + result.width) > frame.cols) {
+              result.width = frame.cols - result.x;
+            }
+            result.y = std::max(0, result.y);
+            if ((result.y + result.height) > frame.rows) {
+              result.height = frame.rows - result.y;
+            }
+
             // draw roi
             if(keyframes[frame_index])
                 color = color_blue;
             else
                 color = color_green;
+
             cv::rectangle(frame, cv::Point(result.x, result.y),
                           cv::Point(result.x + result.width, result.y + result.height),
                           color, 2, 8);
@@ -614,20 +674,20 @@ void displayHelp()
  */
 void saveFile(std::string file_name, std::vector<cv::Rect> rectangles)
 {
+
     std::ofstream ofile;
     ofile.open(file_name.c_str());
-    for(size_t i = 0; i < rectangles.size(); i++)
-    {
-        ofile << rectangles[i].x << " " << rectangles[i].y << " " <<
-                 rectangles[i].width << " " << rectangles[i].height <<
-                 std::endl;
-    }
-    ofile.close();
-    std::cout << "Data saved to " << file_name << std::endl;
 
-    std::ofstream ofile2;
-    std::string outputFile = file_name + "_yolo_labels";
-    ofile2.open(outputFile.c_str());
+    if (output_format.compare("cv") == 0) {
+      for(size_t i = 0; i < rectangles.size(); i++)
+      {
+          ofile << rectangles[i].x << " " << rectangles[i].y << " " <<
+                   rectangles[i].width << " " << rectangles[i].height <<
+                   std::endl;
+      }
+    ofile.close();
+    std::cout << "CV Data saved to " << file_name << std::endl;
+    } else {
 
     if(image_directory[image_directory.size()-1] == '/') {        // If argc[1] has a trailing "/" remove it
         image_directory.pop_back();
@@ -635,20 +695,22 @@ void saveFile(std::string file_name, std::vector<cv::Rect> rectangles)
 
     for(size_t i = 0; i < rectangles.size(); i++)
     {
+
         std::vector<std::string> splitString;
         boost::split(splitString, (const std::string)filenames[i], boost::is_any_of("/"));
 
-        ofile2 << file_name.c_str() << "," << 
-                 static_cast<double>(rectangles[i].x+(rectangles[i].width/2))/frame.cols << "," <<
-                 static_cast<double>(rectangles[i].y+(rectangles[i].height/2))/frame.rows << "," <<
-                 static_cast<double>(rectangles[i].width)/frame.cols << "," << 
+        ofile << file_name.c_str() << " " << 
+                 static_cast<double>(rectangles[i].x+(rectangles[i].width/2))/frame.cols << " " <<
+                 static_cast<double>(rectangles[i].y+(rectangles[i].height/2))/frame.rows << " " <<
+                 static_cast<double>(rectangles[i].width)/frame.cols << " " << 
                  static_cast<double>(rectangles[i].height)/frame.rows << " "  << 
                  image_directory << "/" << 
                  splitString[splitString.size()-1] <<
                  std::endl;
     }
-    ofile2.close();
-    std::cout << "YOLO Data saved to " << outputFile << std::endl;
+    ofile.close();
+    std::cout << "YOLO Data saved to " << file_name << std::endl;
+    }
 }
 
 cv::Rect operator *(const float s, const cv::Rect r1)
@@ -669,4 +731,15 @@ cv::Rect operator +(const cv::Rect r1, const cv::Rect r2)
     r3.width = r2.width + r1.width;
     r3.height = r2.height + r1.height;
     return r3;
+}
+
+cv::Rect convert_yolo_cv (const float x, const float y, const float w, 
+                          const float h, const float X, const float Y)
+{
+  cv::Rect r4;
+  r4.x = static_cast<int>((x - (w/2))*X);
+  r4.y = static_cast<int>((y - (h/2))*Y);
+  r4.width = static_cast<int>(w * X);
+  r4.height = static_cast<int>(h * Y);
+  return r4;
 }
