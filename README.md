@@ -6,10 +6,6 @@ Compatible ROI Formats: yolo, cv
 yolo format: class, centerX, centerY, box width, box height (all in percentages of image size)  
 cv format: top left X, top left Y, width, height (all in pixel values)  
 
-## Known Bugs
-
-If your output files last label has no boxes/or a zero (0 0 0 0) the program will crash
-
 ## Getting Started
 #### Requirements
 * Qt 5.X.X (comes with Qt Creator download)
@@ -70,9 +66,6 @@ to interpolate ROIs in the intervals between them.
 |:----------------:|:-------------|
 | <kbd>b</kbd>     | Move to beginning |
 | <kbd>t</kbd>     | Show/Hide info panel |
-
-
-
 
 ## Image generation
 

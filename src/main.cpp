@@ -1,15 +1,16 @@
 /*
  * Video labeling with KCF tracking
- * args: input_image_folder output_file(optional)
+ * args: input_image_folder output_file(optional) label_format(optional) output_format(optional)
+ * default: yolo format
  */
 
 /*
- * Bounding Box Formats: This script is designed around the use of cv2 rectangles
- * by which use the ROI's top left corner, width and height are converted into a 
- * cv::rectangle format.
+ * Bounding Box Formats: This script is uses cv::Rect objects (top left x, top 
+ * left y, width and height) and converts these into a cv::rectangle format 
+ * (topleft XY, bottomright XY) in order to draw bounding boxes.
  *
- * CV Format - Point pt1 (Top Left), Point pt2 (Bottom Right) (all in raw pixel values)
- * YOLO Format - centerX, centerY, box width, box height (all in percentages of image size)
+ * CV Format - topLeft X, topLeft Y, width, height (all in raw pixel values)
+ * YOLO Format - center X, center Y, box width, box height (all in percentages of image size)
  *  
 */
 
@@ -101,8 +102,8 @@ int main(int argc, char *argv[])
      */
     if(argc < 2)
     { // read the input image folder name
-        std::cerr << "Usage: video_labeler input_folder <class number> \ 
-                      <label_format> (Default YOLO) \ 
+        std::cerr << "Usage: video_labeler input_folder <class number> \
+                      <label_format> (Default YOLO) \
                       <output_format> (Default YOLO)" << std::endl;
         exit(1);
     }
@@ -208,6 +209,8 @@ int main(int argc, char *argv[])
                 std::cout << "Pre-existing YOLO data read from " << output_file_name << std::endl;
               }
           }
+          // Start at last labeled image
+          frame_index = rectangles.size()-1;
     }
 
     if(not data_read)
@@ -280,7 +283,9 @@ int main(int argc, char *argv[])
         {
             tracker.init(roi_selection, frame);
         }
-        else
+        // only run kcf tracker if last data entry is a valid ROI
+        else if (data_read && (rectangles.size() > 0 && rectangles.back().area() != 0))
+
         {
             tracker.init(rectangles.back(), frame);
         }
@@ -310,21 +315,24 @@ int main(int argc, char *argv[])
                 else
                 {
                     result = tracker.update(frame);
+                    
+                    // assert values within range
+
+                    result.x = std::max(0, result.x);
+                    if ((result.x + result.width) > frame.cols) {
+                        result.width = frame.cols - result.x;
+                    }
+                    result.y = std::max(0, result.y);
+                    if ((result.y + result.height) > frame.rows) {
+                        result.height = frame.rows - result.y;
+                    }
+                    
                 }
                 rectangles.push_back(result);
                 keyframes.push_back(false);
             }
 
-            // assert values within range
-
-            result.x = std::max(0, result.x);
-            if ((result.x + result.width) > frame.cols) {
-              result.width = frame.cols - result.x;
-            }
-            result.y = std::max(0, result.y);
-            if ((result.y + result.height) > frame.rows) {
-              result.height = frame.rows - result.y;
-            }
+            
 
             // draw roi
             if(keyframes[frame_index])
