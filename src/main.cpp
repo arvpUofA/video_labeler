@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 {
     std::string output_file_name = "ground_truth.txt";
     std::cout << "Labeling application started" << std::endl;
-    std::string image_directory = argv[1];
+    image_directory = argv[1];
 
 
     /*
