@@ -5,6 +5,7 @@ Default In/Out Label Format: YOLO
 Compatible ROI Formats: yolo, cv  
 yolo format: class, centerX, centerY, box width, box height (all in percentages of image size)  
 cv format: top left X, top left Y, width, height (all in pixel values)  
+*Note: Labeler assumes that all images are the same size
 
 ## Getting Started
 #### Requirements
