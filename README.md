@@ -25,28 +25,6 @@ After downloading the repository, open the project in Qt Creator. Then apply the
 
 *Note: class_number must be a int and all classes must be continuous for combineLabels.py to work
 
-## Combining and checking labels
-
-To combine all class labels into an individual file run  
-
-`python combineLabels <image_directory> <num_of_classes>`  
-
-Once all labels are combined you can check the bounding boxes using  
-
-`python checkLabels <image_directory>`  
-
-Choose option 1 to check labels, and remove any wrongly labeled files.  Warning this will completely remove the image and it's associated labels but will not break the combineLabels script.
-
-## Generating train.txt file
-
-Run  
-  
-  
-`python checkLabels <image_directory>`  
-  
-  
-Choose option 2
-
 ## Optional Usage
 
 `./video_labeler path_to_iamges <{class_number}.txt> <input_format> <output_format>`
@@ -91,6 +69,28 @@ to interpolate ROIs in the intervals between them.
 |:----------------:|:-------------|
 | <kbd>b</kbd>     | Move to beginning |
 | <kbd>t</kbd>     | Show/Hide info panel |
+
+## Combining and checking labels
+
+To combine all class labels into an individual file run  
+
+`python combineLabels <image_directory> <num_of_classes>`  
+
+Once all labels are combined you can check the bounding boxes using  
+
+`python checkLabels <image_directory>`  
+
+Choose option 1 to check labels, and remove any wrongly labeled files.  Warning this will completely remove the image and it's associated labels but will not break the combineLabels script.
+
+## Generating train.txt file
+
+Run  
+  
+  
+`python checkLabels <image_directory>`  
+  
+  
+Choose option 2
 
 ## Image generation
 
