@@ -1,9 +1,11 @@
 # Video labeler
 
-Video labeling software with KCF tracker.
-Output format: x y width height
-
-_Note:_ x y indicate the coordinates of the top left corner
+Video labeling software with KCF tracker.  
+Default In/Out Label Format: YOLO  
+Compatible ROI Formats: yolo, cv  
+yolo format: class, centerX, centerY, box width, box height (all in percentages of image size)  
+cv format: top left X, top left Y, width, height (all in pixel values)  
+*Note: Labeler assumes that all images are the same size
 
 ## Getting Started
 #### Requirements
@@ -19,7 +21,13 @@ After downloading the repository, open the project in Qt Creator. Then apply the
 
 ## Usage
 
-`./video_labeler path_to_images <output_file>`
+`./video_labeler path_to_images <class_number>`
+
+*Note: do not use any file extensions for the class number
+
+## Optional Usage
+
+`./video_labeler path_to_iamges <class_number> <input_format> <output_format>`
 
 Draw the initial ROI and press <kbd>Enter</kbd>. Wherever the tracker fails, press
 <kbd>r</kbd> and redraw that frame. Once everything is good, press <kbd>Esc</kbd> to abort and save ROI file.
