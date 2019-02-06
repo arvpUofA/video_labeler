@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
     //-- Step 2: start tracking if no pre-existing data
     KCFTracker tracker(KCF_HOG, KCF_FIXEDWINDOW, KCF_MULTISCALE, KCF_LAB);
     // initialize with first frame and position of the object
-    if(not data_read)
+    if(not data_read && rectangles.back().area() > 0)
     {
       tracker.init(roi_selection, frame);
     }
@@ -371,7 +371,7 @@ int main(int argc, char *argv[])
           if(roi_selection_flag) {
             making_roi = true;
           }
-          else if(!roi_selection_flag && making_roi) {
+          else if(!roi_selection_flag && making_roi && roi_section.width > 0) {
             // initialize tracker
             tracker.init(roi_selection, frame);
             rectangles[frame_index] = roi_selection;
