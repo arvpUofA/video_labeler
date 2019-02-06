@@ -23,11 +23,35 @@ After downloading the repository, open the project in Qt Creator. Then apply the
 
 `./video_labeler path_to_images <{class_number}.txt>`
 
-*Note: class_number argument must end with .txt
+*Note: class_number must be a int and all classes must be continuous for combineLabels.py to work
+
+## Combining and checking labels
+
+To combine all class labels into an individual file run  
+
+`python combineLabels <image_directory> <num_of_classes>`  
+
+Once all labels are combined you can check the bounding boxes using  
+
+`python checkLabels <image_directory>`  
+
+Choose option 1 to check labels, and remove any wrongly labeled files.  Warning this will completely remove the image and it's associated labels but will not break the combineLabels script.
+
+## Generating train.txt file
+
+Run  
+  
+  
+`python checkLabels <image_directory>`  
+  
+  
+Choose option 2
 
 ## Optional Usage
 
-`./video_labeler path_to_iamges <class_number> <input_format> <output_format>`
+`./video_labeler path_to_iamges <{class_number}.txt> <input_format> <output_format>`
+
+## Labeling Data
 
 Draw the initial ROI and press <kbd>Enter</kbd>. Wherever the tracker fails, press
 <kbd>r</kbd> and redraw that frame. Once everything is good, press <kbd>Esc</kbd> to abort and save ROI file.
