@@ -21,9 +21,9 @@ After downloading the repository, open the project in Qt Creator. Then apply the
 
 ## Usage
 
-`./video_labeler path_to_images <class_number>`
+`./video_labeler path_to_images <{class_number}.txt>`
 
-*Note: do not use any file extensions for the class number
+*Note: class_number argument must end with .txt
 
 ## Optional Usage
 
