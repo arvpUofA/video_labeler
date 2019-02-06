@@ -1,6 +1,6 @@
 /*
  * Video labeling with KCF tracking
- * args: input_image_folder output_file(optional) label_format(optional) output_format(optional)
+ * args: input_image_folder <class_num>.txt output_file(optional) label_format(optional) output_format(optional)
  * default: yolo format
  */
 
@@ -196,9 +196,9 @@ int main(int argc, char *argv[])
       }
       // If label format is yolo
     } else {
-      float c, x, y, w, h;
+      float x, y, w, h;
       std::string file_dir;
-      while(infile >> c >> x >> y >> w >> h >> file_dir)
+      while(infile >> x >> y >> w >> h >> file_dir)
       {
         data_read = true;
         rectangles.push_back(convert_yolo_cv(x, y, w, h, frame.cols, frame.rows));
@@ -706,8 +706,7 @@ void saveFile(std::string file_name, std::vector<cv::Rect> rectangles)
       std::vector<std::string> splitString;
       boost::split(splitString, (const std::string)filenames[i], boost::is_any_of("/"));
 
-      ofile << file_name.c_str() << " " <<
-            static_cast<double>(rectangles[i].x+(rectangles[i].width/2))/frame.cols << " " <<
+      ofile << static_cast<double>(rectangles[i].x+(rectangles[i].width/2))/frame.cols << " " <<
             static_cast<double>(rectangles[i].y+(rectangles[i].height/2))/frame.rows << " " <<
             static_cast<double>(rectangles[i].width)/frame.cols << " " <<
             static_cast<double>(rectangles[i].height)/frame.rows << " "  <<

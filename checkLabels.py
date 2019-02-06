@@ -6,11 +6,10 @@ from pathlib import Path
 class LabelChecker:
     def __init__(self):
         self.rootPath = Path.cwd()
-        self.directories = ['badData', 'goodData']
+        self.directories = []
         self.dirDict = {}
         for i in self.directories:
             self.dirDict[i] = self.rootPath / i
-
 
     def getImageFileList(self, path):
         '''RETURNS A LIST OF ALL FILES IN /DATA DIR THAT DO NOT END IN .TXT'''
@@ -24,14 +23,24 @@ class LabelChecker:
         image = cv2.imread((self.dirDict[path] / fileName).as_posix())
         sizeHW = [image.shape[0], image.shape[1]]
         textFile = fileName.split('.')[0]+'.txt'
-        labels = (self.dirDict[path] / textFile).open()
-        labels = [i.strip() for i in labels]
-        labels = [i.split() for i in labels]
-        labels = np.asarray(labels)
-        classes = labels[:,0].astype(np.int)
-        labels = labels[:,1:].astype(np.float)
-        return image, sizeHW, classes, labels
-    
+        
+        hasLabel = True
+        try:
+            labels = (self.dirDict[path] / textFile).open()
+        except:
+            hasLabel = False
+
+        if hasLabel:    
+            labels = [i.strip() for i in labels]
+            labels = [i.split() for i in labels]
+            labels = np.asarray(labels)
+            classes = labels[:,0].astype(np.int)
+            labels = labels[:,1:].astype(np.float)
+
+            return image, sizeHW, classes, labels
+        else:
+            return image, sizeHW, [], []
+
     def drawBox(self, img, sizeHW, classes, labels, window):
         '''TAKES IN LABELS IN YOLO FORMAT AND CREATES ANNOTATED IMAGE'''
         font = cv2.FONT_HERSHEY_SIMPLEX
@@ -54,40 +63,55 @@ class LabelChecker:
     
     def checkLabels(self, path):
         '''LOOPS THROUGH DATA IN YOUR DATA FOLDER GIVING A PREVIEW OF LABELED
-        IMAGE ALLOWING YOU TO REMOVE IMPROPERLY LABELED IMAGES IF MOVE IS TRUE
-        IT WILL MOVE CHECKED DATA INTO SORTED FOLDERS IN ROOT DIRECTORY'''
-        print('Press ESC to quit')
+        IMAGE ALLOWING YOU TO REMOVE IMPROPERLY LABELED IMAGES'''
+        print('RUNNING THIS WILL MODIFY YOUR {images} folder(in same directory of this script)')
         filelist = self.getImageFileList(path)
-        move = input('Do you want to seperate sorted data? (Y/N): ').lower()     
-        if move == 'y':
-            try:
-                self.dirDict['goodData'].mkdir()
-            except Exception as e:
-                print(e.args[0])
-            try:
-                self.dirDict['badData'].mkdir()
-            except Exception as e:
-                print(e.args[0])
-            print('Press Spacebar to move image into badData dir')
-            print('Press any other key to keep data')
-        
+        move = int(input('0:remove labels with no classes\n'
+                         '1:remove images and labels with space, any other key to continue \n'
+                         '2:genrate train.txt:\n'
+                         '[0/1/2]: '))    
+        if move == 0:
+            print('Hold space bar down, all images with labels of 0 will be removed')
+        elif move == 1:
+            print('Press space bar to remove image, any other key to continue, ESC to quit')
+        elif move == 2:
+            allLabelFile = open(os.getcwd() + '/train.txt','w')
+
+        filelist.sort();
         for fileName in filelist:
+            if move == 2:
+                allLabelString = 'arvpData/images/train/'+fileName+'\n'
+                allLabelFile.write(allLabelString)
+                continue
             img, sizeHW, classes, labels, = self.loadImage(fileName, path)
-            key,img = self.drawBox(img, sizeHW, classes, labels, window=True)
-            image = self.dirDict[path] / fileName
-            label = self.dirDict[path] / (fileName.split('.')[0]+'.txt')
+            print fileName
+            imagePath = str(self.dirDict[path] / fileName)
             
-            if key == 32 and move == 'y':
-                print('Removing', fileName)
-                image.replace(self.dirDict['badData'] / image.name)
-                label.replace(self.dirDict['badData'] / label.name)
+            if (move == 0): 
+                if len(classes) == 0:
+                    if os.path.isfile(imagePath):
+                        os.remove(imagePath)
+                    else:
+                        print(imagePath, "not found")
+                continue
+            else:
+                key,img = self.drawBox(img, sizeHW, classes, labels, window=True)
+
+
+            # label to remove
+            label = str(self.dirDict[path] / (fileName.split('.')[0]+'.txt'))
+            if (move == 1) and key == 32: 
+                if os.path.isfile(imagePath) and os.path.isfile(label):
+                    os.remove(imagePath)
+                    os.remove(label)
+                else:
+                    print(imagePath, "not found")
             elif key == 27:
-                break
-            elif move =='y':
-                image.replace(self.dirDict['goodData'] / image.name)
-                label.replace(self.dirDict['goodData'] / label.name)
+                break                        
+
         cv2.destroyAllWindows() 
-        
+        if move == 2:            
+            allLabelFile.close()
                  
 def main():
     labelChecker = LabelChecker()
@@ -95,7 +119,9 @@ def main():
     directoryName = 'images'    
     if len(sys.argv) > 1:
         directoryName = sys.argv[1]
-
+    else:
+        print("Usage python {imageWithLabels directoy name}\nMust be in same directory as this script")
+        exit()
     labelChecker.dirDict[directoryName] = labelChecker.rootPath / directoryName
 
     if labelChecker.dirDict[directoryName].is_dir():
