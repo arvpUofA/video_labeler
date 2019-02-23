@@ -371,7 +371,7 @@ int main(int argc, char *argv[])
           if(roi_selection_flag) {
             making_roi = true;
           }
-          else if(!roi_selection_flag && making_roi && roi_section.width > 0) {
+          else if(!roi_selection_flag && making_roi && roi_selection.width > 0) {
             // initialize tracker
             tracker.init(roi_selection, frame);
             rectangles[frame_index] = roi_selection;
