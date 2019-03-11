@@ -39,25 +39,27 @@ image_names = sorted(image_names)
 labels = [[None] for i in range(num_classes)]
 
 for i in range(num_classes):
-    cur_class = open(str(i)+'.txt','r')
-    label = [c.strip() for c in cur_class]
-    label = [l.split(' ') for l in label]
-    for line in label:
+    class_label_file = open(str(i)+'.txt','r')
+
+    # label is a list of
+    # ['0', '0', '0', '0', 'pathGateDice/00812.jpg']
+    class_labels = [l.strip().split(' ') for l in class_label_file]
+    for label in class_labels:
         for j in range(4):
-            line[j] = float(line[j])
+            label[j] = float(label[j])
 
     # Assert the file still exists.
     # File not existing should never be possible, but in case it is
     to_remove = []
-    for line in label:
-        if (not os.path.isfile(os.path.join(cwd, line[-1]))):
-            print("could not find" + line[-1] + " did you remove it?")
-            to_remove.append(line)
+    for label in class_labels:
+        if (not os.path.isfile(os.path.join(cwd, label[-1]))):
+            print("could not find" + label[-1] + " did you remove it?")
+            to_remove.append(label)
     for removed in to_remove:
-        label.remove(removed)
+        class_labels.remove(removed)
     
-    labels[i] = label
-    cur_class.close()
+    labels[i] = class_labels
+    class_label_file.close()
 
 for i in range(len(image_names)):
     image_name = image_names[i]
