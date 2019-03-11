@@ -3,8 +3,8 @@
 Video labeling software with KCF tracker.  
 Default In/Out Label Format: YOLO  
 Compatible ROI Formats: yolo, cv  
-yolo format: class, centerX, centerY, box width, box height (all in percentages of image size)  
-cv format: top left X, top left Y, width, height (all in pixel values)  
+yolo format: `class, centerX, centerY, box width, box height` (all in percentages of image size)  
+cv format: `top left X, top left Y, width, height` (all in pixel values)  
 *Note: Labeler assumes that all images are the same size
 
 ## Getting Started
@@ -21,76 +21,75 @@ After downloading the repository, open the project in Qt Creator. Then apply the
 
 ## Usage
 
-`./video_labeler path_to_images <{class_number}.txt>`
+`./video_labeler path_to_images {class_number}.txt`
 
 *Note: class_number must be a int and all classes must be continuous for combineLabels.py to work
 
 ## Optional Usage
 
-`./video_labeler path_to_iamges <{class_number}.txt> <input_format> <output_format>`
+`./video_labeler path_to_images {class_number}.txt {input_format} {output_format}`
 
 ## Labeling Data
 
-Draw the initial ROI and press <kbd>Enter</kbd>. Wherever the tracker fails, press
-<kbd>r</kbd> and redraw that frame. Once everything is good, press <kbd>Esc</kbd> to abort and save ROI file.
-
 If the output_file specified already contains ROIs, these will be loaded up into the labeler.
 
-*Note: the tool requires a starting ROI on the first frame. If there is no object
-for tagging the first frame, create an arbitrary ROI and then run the tracker.
-Later use <kbd>x</kbd> to remove ROI's where no objects exist.*
+Drawing ROIs is done clicking and holding the <kbd>LMB</kbd> on the image. This is enabled after pressing <kbd>w</kbd> or <kbd>r</kbd>
 
-## Controls
+<kbd>r</kbd> Will draw an ROI on the current frame and start tracking for following frames. <b>If the following frames have ANY ROIs already set, those ROIs will be deleted.</b>
 
-Use the mouse to draw bounding rectangles for the desired object while the video.
-is paused. ROIs are confirmed by pressing the <kbd>enter</kbd> key.
+<kbd>w</kbd> Will draw an ROI but the following frames will not track. This does not affect any other frames.
+
+The following keys will stop the tracking until <kbd>r</kbd> is used again: <kbd>w</kbd> <kbd>x</kbd> <kbd>b</kbd> <kbd>h</kbd>  
+ 
+#### Recommended Controls
+|       Key        |    Action    |
+|:----------------:|:-------------|
+| <kbd>h</kbd> <kbd>j</kbd>    | Go backwards/forwards one frame |
+| <kbd>r</kbd>     | Reset (destructive marking). Draws ROI on frame and starts tracker for following frames |
+| <kbd>t</kbd>     | Show/Hide info panel |
+| <kbd>Esc</kbd>   | Finish labeling |
+| <b>Key</b>       | <b>Action (These actions also stops the tracker on the next frame)</b> |
+| <kbd>h</kbd>     | Go backwards |
+| <kbd>w</kbd>     | Non-destructive marking. Draws ROI on frame but stops tracker |
+| <kbd>x</kbd>     | Mark frame without object |
+| <kbd>b</kbd>     | Move to beginning |
+
+<i>Interpolation is not recommended in the current video labeler state</i>
 
 The general principle of the application is to manually draw ROIs as little as
 possible. This can be done by using _keyframes_ wherein the KCF tracker attempt
-to interpolate ROIs in the intervals between them.
+to interpolate ROIs in the intervals between them. 
 
-#### Functional Controls
-|       Key        |    Action    |
-|:----------------:|:-------------|
-| <kbd>space</kbd>             | Pause/Play |
-| <kbd>y</kbd> <kbd>u</kbd>    | Slow/Speed up video |
-| <kbd>h</kbd> <kbd>j</kbd>    | Go backwards/forwards one frame |
-| <kbd>x</kbd>     | Mark frame without object |
-| <kbd>k</kbd>     | Mark frame as keyframe |
-| <kbd>w</kbd>     | Non-destructive marking. Draws ROI on frame but doesn't update tracker |
-| <kbd>r</kbd>     | Reset (destructive marking). Draws ROI on frame and updates tracker for following frames |
-| <kbd>i</kbd>     | Interpolates interval between keyframes, overrides tracking |
-| <kbd>s</kbd>     | Smooth all rois, doesn't move keyframes |
-| <kbd>z</kbd>     | Save current ROIs to file |
-| <kbd>Esc</kbd>   | Finish labeling |
+<i>Interpolation is not recommended in the current video labeler state</i>
 
 #### Additional Controls
 |       Key        |    Action    |
 |:----------------:|:-------------|
-| <kbd>b</kbd>     | Move to beginning |
-| <kbd>t</kbd>     | Show/Hide info panel |
+| <kbd>space</kbd>             | Pause/Play |
+| <kbd>y</kbd> <kbd>u</kbd>    | Slow/Speed up video |
+| <kbd>k</kbd>     | Mark frame as keyframe |
+| <kbd>i</kbd>     | Interpolates interval between keyframes, overrides tracking |
+| <kbd>s</kbd>     | Smooth all rois, doesn't move keyframes |
+| <kbd>z</kbd>     | Save current ROIs to file |
+
 
 ## Combining and checking labels
 
 To combine all class labels into an individual file run  
 
-`python combineLabels <image_directory> <num_of_classes>`  
+`python combineLabels {image_directory} {num_of_classes}`  
 
 Once all labels are combined you can check the bounding boxes using  
 
-`python checkLabels <image_directory>`  
+`python checkLabels {image_directory}`  
 
-Choose option 1 to check labels, and remove any wrongly labeled files.  Warning this will completely remove the image and it's associated labels but will not break the combineLabels script.
+Choose option 0 to check labels, and remove any wrongly labeled files.  Warning this will completely remove the image and it's associated labels but will not break the combineLabels script.
 
 ## Generating train.txt file
+    
+`python checkLabels {image_directory}`  
 
-Run  
-  
-  
-`python checkLabels <image_directory>`  
-  
-  
-Choose option 2
+Choose option 1
 
 ## Image generation
 
