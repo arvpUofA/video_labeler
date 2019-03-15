@@ -21,13 +21,13 @@ After downloading the repository, open the project in Qt Creator. Then apply the
 
 ## Usage
 
-`./video_labeler path_to_images {class_number}.txt`
+`./video_labeler path_to_images {class_number}`
 
 *Note: class_number must be a int and all classes must be continuous for combineLabels.py to work
 
 ## Optional Usage
 
-`./video_labeler path_to_images {class_number}.txt {input_format} {output_format}`
+`./video_labeler path_to_images {class_number} {input_format} {output_format}`
 
 ## Labeling Data
 
@@ -44,6 +44,7 @@ The following keys will stop the tracking until <kbd>r</kbd> is used again: <kbd
 #### Recommended Controls
 |       Key        |    Action    |
 |:----------------:|:-------------|
+| <kbd>y</kbd> <kbd>u</kbd>  | Increase/Decrease up delay between frames |
 | <kbd>h</kbd> <kbd>j</kbd>    | Go backwards/forwards one frame |
 | <kbd>r</kbd>     | Reset (destructive marking). Draws ROI on frame and starts tracker for following frames |
 | <kbd>t</kbd>     | Show/Hide info panel |
@@ -53,6 +54,7 @@ The following keys will stop the tracking until <kbd>r</kbd> is used again: <kbd
 | <kbd>w</kbd>     | Non-destructive marking. Draws ROI on frame but stops tracker |
 | <kbd>x</kbd>     | Mark frame without object |
 | <kbd>b</kbd>     | Move to beginning |
+
 
 <i>Interpolation is not recommended in the current video labeler state</i>
 
@@ -66,7 +68,6 @@ to interpolate ROIs in the intervals between them.
 |       Key        |    Action    |
 |:----------------:|:-------------|
 | <kbd>space</kbd>             | Pause/Play |
-| <kbd>y</kbd> <kbd>u</kbd>    | Slow/Speed up video |
 | <kbd>k</kbd>     | Mark frame as keyframe |
 | <kbd>i</kbd>     | Interpolates interval between keyframes, overrides tracking |
 | <kbd>s</kbd>     | Smooth all rois, doesn't move keyframes |
@@ -83,7 +84,7 @@ Once all labels are combined you can check the bounding boxes using
 
 `python checkLabels {image_directory}`  
 
-Choose option 0 to check labels, and remove any wrongly labeled files.  Warning this will completely remove the image and it's associated labels but will not break the combineLabels script.
+Choose option 0 to check labels, and remove any wrongly labeled files.  Warning this will completely remove the image and it's associated labels.
 
 ## Generating train.txt file
     

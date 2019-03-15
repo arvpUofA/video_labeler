@@ -82,85 +82,57 @@ static std::string output_format = "yolo";
 /*
  * Main
  */
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
   std::string output_file_name = "ground_truth.txt";
-  std::cout << "Labeling application started" << std::endl;
-  image_directory = argv[1];
 
-
-  /*
-   * KCF Params
-   */
   bool KCF_HOG = false;           // HOG feature is pretty bad
   bool KCF_FIXEDWINDOW = false;   // fixed window performance bad
   bool KCF_MULTISCALE = true;
   bool KCF_LAB = false;
 
-  /*
-   * read CLI parameters
-   */
-  if(argc < 2)
-  { // read the input image folder name
-    std::cerr << "Usage: video_labeler input_folder {class number}.txt \
+  if(argc <= 2) { // read the input image folder name
+    std::cerr << "Usage: video_labeler input_folder {class number} \
       {label_format} (Default YOLO) \
       {output_format} (Default YOLO)" << std::endl;
     exit(1);
   }
-  if(argc > 2)
-  {
-    output_file_name = argv[2];
-  }
-  if(argc > 3)
-  {
-    label_format = argv[3];
-  }
-  if(argc > 4)
-  {
-    output_format = argv[4];
-  }
+  image_directory = argv[1];
+  output_file_name = argv[2];
+  output_file_name = boost::algorithm::ends_with(output_file_name, ".txt")
+                       ? output_file_name : output_file_name + ".txt";
+  label_format = (argc > 3) ? argv[3] : label_format;
+  output_format = (argc > 4) ? argv[4] : output_format;
 
-  /*
-   * read image files
-   */
+  std::cout << "Image directory: " << image_directory << std::endl;
+  std::cout << "Output file: " << output_file_name << std::endl;
+  std::cout << "Label format: " << label_format << std::endl;
+  std::cout << "Output format: " << output_format << std::endl;
+
+  // read image files
   QDir image_folder(argv[1]);
   image_folder.setNameFilters(QStringList() << "*.jpg" << "*.png");
   QStringList fileList = image_folder.entryList();
-  for(QStringList::iterator it = fileList.begin(); it != fileList.end(); it++)
-  {
+  for (QStringList::iterator it = fileList.begin(); it != fileList.end(); it++) {
     std::string filename = image_folder.absolutePath().toStdString() +
                            "/" + it->toStdString();
     filenames.push_back(filename);
   }
   size_t filenames_size = filenames.size();
-  if(filenames.empty())
-  {
+  if (filenames.empty()) {
     std::cerr << "ERROR: No input images found." << std::endl;
     exit(1);
-  }
-  else
-  {
+  } else {
     std::cout << "Loaded " << filenames_size << " images" << std::endl;
   }
 
-  /*
-   * show help
-   */
   displayHelp();
 
-  /*
-   * initialize opencv window
-   */
   cv::namedWindow("Labeling", 0);
   cv::setMouseCallback("Labeling", onMouseCb, nullptr);
 
-  /*
-   * variables used to hold the state
-   */
-  size_t frame_index = 0;
+  size_t frame_index = 0; // index of current frame
   frame = getFrame(frame_index);
   std::cout << "The resolution of video is : " << frame.cols << "x" << frame.rows << std::endl;
-  std::cout << "The label format is : " << label_format << std::endl;
 
   std::vector<cv::Rect> rois;   // stores all the rois
   std::vector<bool> keyframes;
@@ -172,14 +144,11 @@ int main(int argc, char *argv[])
   cv::Rect result;
   bool data_read = false; // flag for pre-existing data
 
-  /*
-   * load pre-existing ROIs from label file
-   */
+  // load pre existing rois if they exist
   std::ifstream infile(output_file_name.c_str());
   if(infile.good()) {
-    // If label format is cv::Rect
+    // Label format is cv::Rect
     if (label_format.compare("cv") == 0) {
-
       int x, y, w, h;
       while(infile >> x >> y >> w >> h) {
         data_read = true;
@@ -187,11 +156,10 @@ int main(int argc, char *argv[])
         keyframes.push_back(true);
       }
       infile.close();
-      if(data_read) {
+      if (data_read) {
         std::cout << "Pre-existing CV data read from " << output_file_name << std::endl;
       }
-      // If label format is yolo
-    } else {
+    } else { // Label format is YOLO
       float x, y, w, h;
       std::string file_dir;
       while(infile >> x >> y >> w >> h >> file_dir) {
@@ -211,35 +179,27 @@ int main(int argc, char *argv[])
   // process all frames
   while(frame_index < filenames_size && continue_video) {
     KCFTracker tracker(KCF_HOG, KCF_FIXEDWINDOW, KCF_MULTISCALE, KCF_LAB);
-    // only run kcf tracker if last entry is a valid ROI when reading from existing
-    // labels
+    // only run kcf tracker if last entry is a valid, existing ROI
     if (data_read && (rois.size() > 0 && rois.back().area() != 0)) {
       tracker.init(rois.back(), frame);
     }
 
-    int step = 1;
-
-    if (frame_index + 1 < filenames_size) {
-      frame_index += 1;
-      rois.push_back(cv::Rect(0, 0, 0, 0));
-    }
-
     char key_press = -1;
-
+    int step = 0;
     while(continue_video) {
       frame = getFrame(frame_index);
       if(rois.size() > frame_index) { // already computed
         result = rois[frame_index];
       } else {
-        cv::Rect prev_rect = rois[frame_index-1];
-        // if the previous rectangle is 0,0,0,0
-        if ((prev_rect.x == 0 && prev_rect.y == 0 && prev_rect.area() == 0) ||
+        // get the last roi if there is atleast one roi in rois
+        cv::Rect prev_rect = (rois.size() > 0) ? rois[frame_index-1] : cv::Rect(0, 0, 0, 0);
+        // if the previous roi has a width and height of 0
+        if ((prev_rect.area() == 0) ||
              !track_object
         ) {
           result = cv::Rect(0,0,0,0);
-        } else {
+        } else { // use tracker
           result = tracker.update(frame);
-
           // assert ROI values in range of image
           result.x = std::max(0, result.x);
           result.width = ((result.x + result.width) > frame.cols) ?
@@ -264,22 +224,18 @@ int main(int argc, char *argv[])
       addInfoPanel(frame, frame_index, filenames_size, result, show_info_panel);
       cv::imshow("Labeling", frame);
 
-      // wait key and process keys
+      // process keypress
       key_press = static_cast<char>(cv::waitKey(wait_time));
-
-      if (key_press == 27) // terminate
-      {
+      if (key_press == 27) { // finish labelling
         std::cout << "Tracking is terminated!" << std::endl;
         continue_video = false;
       }
 
-      if (key_press == 'r') // reset
-      {
+      if (key_press == 'r') { // reset
         cv::setMouseCallback("Labeling", onMouseCb, nullptr);
         bool making_roi = false;
 
-        while(1)
-        {
+        while(true) {
           cv::waitKey(5); // used as a delay
           frame.copyTo(image);
           cv::rectangle(image, cv::Point(roi_selection.x, roi_selection.y),
@@ -307,13 +263,11 @@ int main(int argc, char *argv[])
         step = 0;
       }
 
-      if (key_press == 'w') // non-destructive correction
-      {
+      if (key_press == 'w') { // non-destructive correction
         cv::setMouseCallback("Labeling", onMouseCb, nullptr);
         bool making_roi = false;
 
-        while(1)
-        {
+        while(1) {
           cv::waitKey(5); // used as a delay
           frame.copyTo(image);
           cv::rectangle(image, cv::Point(roi_selection.x, roi_selection.y),
@@ -337,8 +291,7 @@ int main(int argc, char *argv[])
         step = 0;
       }
 
-      if (key_press == 'x') // frame without object
-      {
+      if (key_press == 'x') { // frame without object
         rois[frame_index] = cv::Rect(0,0,0,0);
         track_object = false;
       }
@@ -390,7 +343,7 @@ int main(int argc, char *argv[])
 
       if (key_press == 32) { // play/pause
         continuous_play = !continuous_play;
-        if(continuous_play) {
+        if(continuous_play && (rois.size() > frame_index)) {
           step = 1;
         } else {
           step = 0;
@@ -405,20 +358,22 @@ int main(int argc, char *argv[])
       }
 
       if (key_press == 'h') { // previous frame
-        if(!continuous_play && (rois.size() > frame_index)) {
+        // do not go to end of video when rois are not filled
+        // when pressing back from first frame of video
+        if(!continuous_play &&
+           !(frame_index == 0 && rois.size() != filenames_size)
+        ) {
           track_object = false;
           step = -1;
         }
       }
 
       if (key_press == 'y') { // speed down video
-        wait_time += 10;
-        wait_time = std::min(wait_time, 1000);
+        wait_time = std::min(wait_time + 10, 1000);
       }
 
       if (key_press == 'u') { // speed up video
-        wait_time -= 10;
-        wait_time = std::max(wait_time, 10);
+        wait_time = std::max(wait_time - 10, 10);
       }
 
       if (key_press == 't') { // toggle info
@@ -426,7 +381,7 @@ int main(int argc, char *argv[])
       }
 
       if (key_press == 'z') { // save to file
-        if(rois.size() > 0) {
+        if (rois.size() > 0) {
           saveFile(output_file_name.c_str(), rois);
         } else {
           std::cout << "No ROIs to save" << std::endl;
@@ -448,10 +403,7 @@ int main(int argc, char *argv[])
       }
     }
   }
-
-  /*
-   * write output file
-   */
+  // save rois
   saveFile(output_file_name.c_str(), rois);
 
   return 0;
@@ -525,9 +477,9 @@ void addInfoPanel(cv::Mat &frame, size_t curr_frame,
   // draw a semi transparent panel
   frame(panel_position) = frame(panel_position) / panel_transparancy;
 
-  // frame info
+  // frame info (0 indexed)
   std::string output_text = "INFO | " +
-                            std::to_string(curr_frame) + "/" + std::to_string(total_frames);
+                            std::to_string(curr_frame) + "/" + std::to_string(total_frames -1);
   cv::putText(frame, output_text, cv::Point2f(5, line_position), 4,
               font_scale, color_gray, 2);
   // roi info
