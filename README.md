@@ -85,6 +85,7 @@ Once all labels are combined you can check the bounding boxes using
 `python checkLabels {image_directory}`  
 
 Choose option 0 to check labels, and remove any wrongly labeled files.  Warning this will completely remove the image and it's associated labels.
+Removing labels (as well as the images) will prevent the labeller from working on the existing images
 
 ## Generating train.txt file
     
