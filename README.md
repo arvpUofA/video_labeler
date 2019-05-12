@@ -76,7 +76,7 @@ to interpolate ROIs in the intervals between them.
 
 ## Combining and checking labels
 
-To combine all class labels into an individual file run  
+To combine all class labels into an individual file  
 
 `python combineLabels {image_directory} {num_of_classes}`  
 
@@ -97,4 +97,8 @@ Choose option 1
 
 To generate images from a video, use ffmpeg `sudo apt-get install ffmpeg`:
 
-`ffmpeg -i <video file> -r 5/1 <path_to_images>/<data_folder_name>$filename%05d.jpg`
+Create directory to store images
+`mkdir <image_folder_name>`
+
+Generate images from video at 5hz
+`ffmpeg -i <video file> -r 5 <image_folder_name>/<image_folder_name>%05d.jpg`
