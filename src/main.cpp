@@ -64,26 +64,27 @@ const cv::Scalar color_white(255,255,255);
  * Globals
  * =======
  */
-static std::vector<std::string> filenames; // image files
+static std::vector<std::string> filenames;      // image files
 // ROI stuff
-static bool roi_selection_flag = false;    // set to true in mouse clicked and selecting
-static cv::Rect roi_selection;             // selected ROI
-static cv::Point roi_origin;               // starting point of ROI
+static bool roi_selection_flag = false;         // set to true in mouse clicked and selecting
+static cv::Rect roi_selection;                  // selected ROI
+static cv::Point roi_origin;                    // starting point of ROI
 static cv::Point mouse_pos;
 // image
-static cv::Mat image;                      // cloned frame for processing
-static cv::Mat frame;                      // raw image frame
+static cv::Mat image;                           // cloned frame for processing
+static cv::Mat frame;                           // raw image frame
 // tracking stuff
 static bool track_object = false;               // handle tracking status
-static std::string image_directory;               // image directory passed by argc
-static std::string label_format = "yolo";         // label format
+static std::string image_directory;             // image directory passed by argc
+static std::string image_directory_name;
+static std::string label_format = "yolo";       // label format
 static std::string output_format = "yolo";
 
 /*
  * Main
  */
 int main(int argc, char *argv[]) {
-  std::string output_file_name = "ground_truth.txt";
+  std::string output_file_name;
 
   bool KCF_HOG = false;           // HOG feature is pretty bad
   bool KCF_FIXEDWINDOW = false;   // fixed window performance bad
@@ -96,12 +97,18 @@ int main(int argc, char *argv[]) {
       {output_format} (Default YOLO)" << std::endl;
     exit(1);
   }
-  image_directory = argv[1];
-  output_file_name = argv[2];
-  output_file_name = boost::algorithm::ends_with(output_file_name, ".txt")
-                       ? output_file_name : output_file_name + ".txt";
-  label_format = (argc > 3) ? argv[3] : label_format;
-  output_format = (argc > 4) ? argv[4] : output_format;
+
+  std::vector<std::string> split_string;
+  image_directory = argv[1]; // relative path from current directory
+  std::string main_class_number = argv[2];
+  std::string secondary_class_number = (argc > 3) ? argv[3] : "0";
+  label_format = (argc > 4) ? argv[4] : label_format;
+  output_format = (argc > 5) ? argv[5] : output_format;
+
+  boost::split(split_string, image_directory, boost::is_any_of("/"));
+  image_directory_name = split_string.back();
+
+  output_file_name = main_class_number + "-" + secondary_class_number + "-" + image_directory_name + ".txt";
 
   std::cout << "Image directory: " << image_directory << std::endl;
   std::cout << "Output file: " << output_file_name << std::endl;
@@ -382,7 +389,7 @@ int main(int argc, char *argv[]) {
 
       if (key_press == 'z') { // save to file
         if (rois.size() > 0) {
-          saveFile(output_file_name.c_str(), rois);
+          saveFile(output_file_name, rois);
         } else {
           std::cout << "No ROIs to save" << std::endl;
         }
@@ -404,7 +411,7 @@ int main(int argc, char *argv[]) {
     }
   }
   // save rois
-  saveFile(output_file_name.c_str(), rois);
+  saveFile(output_file_name, rois);
 
   return 0;
 
@@ -557,8 +564,8 @@ void saveFile(std::string file_name, std::vector<cv::Rect> rois) {
             static_cast<double>(rois[i].y+(rois[i].height/2))/frame.rows << " " <<
             static_cast<double>(rois[i].width)/frame.cols << " " <<
             static_cast<double>(rois[i].height)/frame.rows << " "  <<
-            image_directory << "/" <<
-            splitString[splitString.size()-1] <<
+            image_directory_name << "/" <<
+            splitString.back() <<
             std::endl;
     }
     ofile.close();
