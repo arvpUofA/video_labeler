@@ -3,9 +3,10 @@ import cv2
 import os, sys
 
 class LabelChecker:
-    def __init__(self, image_directory_name):
+    def __init__(self, image_directory_name, default_option):
         self.cwd = os.getcwd()
         self.image_directory_name = image_directory_name
+        self.default_option = default_option
 
     def getImageFileList(self, directory_name):
         '''RETURNS A LIST OF ALL FILES IN /DATA DIR THAT DO NOT END IN .TXT'''
@@ -61,17 +62,21 @@ class LabelChecker:
     def checkLabels(self, directory_name):
         '''LOOPS THROUGH DATA IN YOUR DATA FOLDER GIVING A PREVIEW OF LABELED
         IMAGE ALLOWING YOU TO REMOVE IMPROPERLY LABELED IMAGES'''
-        print('RUNNING THIS WILL MODIFY YOUR {images} folder(in same directory of this script)')
+        print('RUNNING THIS WILL MODIFY YOUR {directory_name} folder(in same directory of this script)')
         file_list = self.getImageFileList(directory_name)
         option = -1
-        while option not in [0, 1]:
-            option = int(input('0:remove images and labels with space, any other key to continue \n'
-                            '1:genrate train.txt:\n'
-                            '[0/1]: '))    
+        if self.default_option == -1:
+            while option not in [0, 1]:
+                option = int(input('0:remove images and labels with space, any other key to continue \n'
+                                '1:generate ' + self.image_directory_name + '.txt:\n'
+                                '[0/1]: '))
+        else:
+            option = self.default_option
+    
         if option == 0:
             print('Press \'x\' to remove image, any other key to continue, ESC to quit')
         elif option == 1:
-            all_label_file = open(os.getcwd() + '/train.txt','w')
+            all_label_file = open(os.getcwd() + '/' + self.image_directory_name +'.txt','w')
 
         file_list.sort();
         directory = os.path.join(self.cwd, directory_name)
@@ -106,10 +111,14 @@ class LabelChecker:
 def main():
     if len(sys.argv) > 1:
         image_directory_name = sys.argv[1]
+        if len(sys.argv) > 2:
+            default_option = int(sys.argv[2])
+        else:
+            default_option = -1
     else:
         print("Usage python checkLabels.py {image_with_labels directoy name}\nMust be in same directory as this script")
         exit()
-    labelChecker = LabelChecker(image_directory_name)
+    labelChecker = LabelChecker(image_directory_name, default_option)
     labelChecker.checkLabels(directory_name=image_directory_name)    
 
 main()
