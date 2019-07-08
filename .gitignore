@@ -73,3 +73,20 @@ Thumbs.db
 
 # remove build folder
 build/
+
+# cmake
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+VideoLabeler
+image_folders/*
+!image_folders/.placeholder
