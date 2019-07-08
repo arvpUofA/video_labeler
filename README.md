@@ -2,32 +2,24 @@
 
 Video labeling software with KCF tracker.  
 Default In/Out Label Format: YOLO  
-Compatible ROI Formats: yolo, cv  
 yolo format: `class, centerX, centerY, box width, box height` (all in percentages of image size)  
-cv format: `top left X, top left Y, width, height` (all in pixel values)  
 *Note: Labeler assumes that all images are the same size
 
 ## Getting Started
-#### Requirements
-* Qt 5.X.X (comes with Qt Creator download)
-* OpenCV 3.X.X
-* [QT Creator](https://www.qt.io/download)
-
+#### Build
 After downloading the repository, open the project in Qt Creator. Then apply the following configurations:
-1. Change the Qt version to 5.X.X in `Projects > Manage Kits... > Build & Run > Desktop` (where Desktop is usually the default kit)
-2. Edit the video_labeler.pro file so that INCLUDEPATH adds your opencv3 include directories. For the opencv3 version that comes with kinetic, this is `/opt/ros/kinetic/include/<OPEN_CV_VERSION>/opencv`. Check your directories to include the correct version.
-3. Build
-4. Run the `video_labeler` executable in the build directory according to the usage guide
+1. `cmake .`
+2. `make`
 
 ## Usage
 
-`./video_labeler path_to_images {class_number}`
+`./VideoLabeler path_to_images {class_number}`
 
 *Note: class_number must be a int and all classes must be continuous for combineLabels.py to work
 
 ## Optional Usage
 
-`./video_labeler path_to_images {class_number} {input_format} {output_format}`
+`./VideoLabeler path_to_images {class_number} {secondary_class_number}`
 
 ## Labeling Data
 
@@ -55,22 +47,10 @@ The following keys will stop the tracking until <kbd>r</kbd> is used again: <kbd
 | <kbd>x</kbd>     | Mark frame without object |
 | <kbd>b</kbd>     | Move to beginning |
 
-
-<i>Interpolation is not recommended in the current video labeler state</i>
-
-The general principle of the application is to manually draw ROIs as little as
-possible. This can be done by using _keyframes_ wherein the KCF tracker attempt
-to interpolate ROIs in the intervals between them. 
-
-<i>Interpolation is not recommended in the current video labeler state</i>
-
 #### Additional Controls
 |       Key        |    Action    |
 |:----------------:|:-------------|
 | <kbd>space</kbd>             | Pause/Play |
-| <kbd>k</kbd>     | Mark frame as keyframe |
-| <kbd>i</kbd>     | Interpolates interval between keyframes, overrides tracking |
-| <kbd>s</kbd>     | Smooth all rois, doesn't move keyframes |
 | <kbd>z</kbd>     | Save current ROIs to file |
 
 

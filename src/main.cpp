@@ -7,7 +7,7 @@ int main(int argc, char** argv ) {
     bool KCF_LAB = false;
 
     if(argc <= 2) { // read the input image folder name
-        std::cerr << "Usage: video_labeler input_folder {class number}" << std::endl;
+        std::cerr << "Usage: ./VideoLabeler input_folder {class number}" << std::endl;
         exit(1);
     }
 
