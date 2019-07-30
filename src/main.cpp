@@ -85,6 +85,7 @@ int main(int argc, char** argv ) {
     /*========================== main loop ================================*/ 
     while (!finished) {
         frame = getFrame(image_paths, frame_index);
+        cv::resize(frame, frame, cv::Size(1280, 720));
         if (rois.size() > frame_index) { // already computed
             result = rois[frame_index];
         } else {

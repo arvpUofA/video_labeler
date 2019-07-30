@@ -19,6 +19,7 @@ class LabelChecker:
         CLASSES AND LABELS'''
         directory = os.path.join(self.cwd, directory_name)
         image = cv2.imread(os.path.join(directory, file_name))
+        image = cv2.resize(image, (1280, 720))
         sizeHW = [image.shape[0], image.shape[1]]
         text_file = file_name.split('.')[0]+'.txt'
         
