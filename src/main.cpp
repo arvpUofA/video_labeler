@@ -6,6 +6,12 @@ int main(int argc, char** argv ) {
     bool KCF_MULTISCALE = true;
     bool KCF_LAB = false;
 
+    bool YOLO_AVAILABLE = true;
+    #ifndef GPU
+    // force disable
+    YOLO_AVAILABLE = false;
+    #endif
+
     if(argc <= 2) { // read the input image folder name
         std::cerr << "Usage: ./VideoLabeler input_folder {class number}" << std::endl;
         exit(1);
@@ -81,6 +87,15 @@ int main(int argc, char** argv ) {
         frame_index = rois.size()-1;
     }
     KCFTracker tracker(KCF_HOG, KCF_FIXEDWINDOW, KCF_MULTISCALE, KCF_LAB);
+
+    /*===========================   YOLO   =============================== */
+
+    #ifdef GPU
+
+    darknetUtil("yolo_torpedo.yaml")
+    classNames_ = darknetUtil.getClassNames();
+
+    #endif
 
     /*========================== main loop ================================*/ 
     while (!finished) {
@@ -172,6 +187,45 @@ int main(int argc, char** argv ) {
             }
             track_object = false;
             step = 0;
+        }
+
+        if (key_press == 'q') { // apply bound from YOLO
+            if(YOLO_AVAILABLE)
+            {
+                #ifdef GPU
+                // TODO
+
+                // Vector to be returned
+                std::vector<au_core::Roi> roiArray;
+
+  std::vector<std::vector<YoloBox> > classedBoxes_ = darknetUtil.runYolo(frame);
+  // Convert YoloBoxes for ROS
+  for (int i = 0; i < classedBoxes_.size(); i++) {
+    std::string className = classNames_[i];
+
+    for (auto box : classedBoxes_[i]) {
+      // Calculate position and dimensions
+
+      auto w = (unsigned int)box.w;
+      auto h = (unsigned int)box.h;
+
+      au_core::Roi roi;
+      roi.topLeft.x = box.x;
+      roi.topLeft.y = box.y;
+      roi.width = w;
+      roi.height = h;
+
+      roi.tags.push_back(className);
+      roiArray.push_back(roi);
+    }
+  }
+  
+                #endif
+            }
+            else
+            {
+                std::cout << "YOLO Disabled" << std::endl;
+            }
         }
 
         if (key_press == 'x') { // remove roi from frame

@@ -197,6 +197,7 @@ void displayHelp() {
     std::cout << "\tGo backwards/forwards on frame: h | j" << std::endl;
     std::cout << "\tNon-destructive marking: w" << std::endl;
     std::cout << "\tReset(destructive marking on future frames): r" << std::endl;
+    std::cout << "\tUse YOLO model to predict bound: q" << std::endl;
     std::cout << "\tMark frame without object: x" << std::endl;
     std::cout << "\tMove to beginning: b" << std::endl;
     std::cout << "\tShow/hide info panel: t" << std::endl;

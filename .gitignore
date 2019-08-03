@@ -90,3 +90,6 @@ _deps
 VideoLabeler
 image_folders/*
 !image_folders/.placeholder
+
+# YOLO weights
+*.weights
