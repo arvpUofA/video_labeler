@@ -91,5 +91,8 @@ VideoLabeler
 image_folders/*
 !image_folders/.placeholder
 
-# YOLO weights
+# YOLO settings
+
 *.weights
+*.cfg
+*.yaml

@@ -6,9 +6,11 @@ int main(int argc, char** argv ) {
     bool KCF_MULTISCALE = true;
     bool KCF_LAB = false;
 
-    bool YOLO_AVAILABLE = true;
+    bool YOLO_AVAILABLE = fs::exists("./params/yolo.yaml");
     bool YOLO_AUTO_LABEL = true;
     int YOLO_WAIT_MS = 50;
+
+    std::cout << "YOLO assistance availability: " << YOLO_AVAILABLE << std::endl;
 
     if(argc <= 2) { // read the input image folder name
         std::cerr << "Usage: ./VideoLabeler input_folder {class number}" << std::endl;
@@ -90,7 +92,6 @@ int main(int argc, char** argv ) {
     /*===========================   YOLO   =============================== */
 
     std::unique_ptr<au_vision::DarknetUtil> darknetUtil;
-    //au_vision::DarknetUtil darknetUtil("yolo.yaml");
     std::vector<std::string> className;
     if(YOLO_AVAILABLE)
     {

@@ -3,7 +3,7 @@ project( VideoLabeler )
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-add_compile_options(-Wall -Wextra)
+add_compile_options(-Wall -Wextra -lstdc++fs)
 
 # 3.2.0 Exact as to not conflict with 3.3.1 built from catkin_ws/build_external
 find_package( OpenCV EXACT 3.2.0 REQUIRED )
@@ -92,7 +92,7 @@ include_directories(
 )
 
 # darknet (use GPU because CPU is far too slow)
-set(USE_GPU 1)
+set(USE_GPU 0)
 
 if(${USE_GPU})
   message("Compiling for GPU")
