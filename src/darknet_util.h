@@ -12,18 +12,16 @@
 #include <opencv2/opencv.hpp>
 #include <cassert>
 
-#include "cublas_v2.h"
-#include "cuda_runtime.h"
-#include "curand.h"
-
+#include <darknet.h>
 extern "C" {
-#include "box.h"
-#include "cost_layer.h"
-#include "image.h"
-#include "network.h"
-#include "parser.h"
-#include "region_layer.h"
-#include "utils.h"
+#include <box.h>
+#include <cost_layer.h>
+#include <image.h>
+#include <network.h>
+#include <parser.h>
+#include <region_layer.h>
+#include <utils.h>
+#include <layer.h>
 }
 
 #ifndef AU_VISION_DARKNET_UTIL_H

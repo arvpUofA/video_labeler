@@ -1,8 +1,0 @@
-# cfg_model: yolov3-tiny-torpedo.cfg
-# weights_model: yolov3-tiny-torpedo_best.weights
-# cfg_model: yolov2-torpedo.cfg
-# weights_model: yolov2-torpedo_best.weights
-cfg_model: yolo-v3-tiny-pan-mixup-torpedo.cfg
-weights_model: yolo-v3-tiny-pan-mixup-torpedo_best.weights
-object_threshold: 0.3
-class_names: ['torpedo_target_19', 'torpedo_covered_19', 'torpedo_heart_19', 'torpedo_uncovered_19']

@@ -7,10 +7,8 @@ int main(int argc, char** argv ) {
     bool KCF_LAB = false;
 
     bool YOLO_AVAILABLE = true;
-    #ifndef GPU
-    // force disable
-    YOLO_AVAILABLE = false;
-    #endif
+    bool YOLO_AUTO_LABEL = true;
+    int YOLO_WAIT_MS = 50;
 
     if(argc <= 2) { // read the input image folder name
         std::cerr << "Usage: ./VideoLabeler input_folder {class number}" << std::endl;
@@ -67,8 +65,9 @@ int main(int argc, char** argv ) {
     bool finished = false;
     bool continuous_play = false;
     int step = 0;
+    bool triggerYolo = false;
 
-      bool data_read = false; // flag for pre-existing data
+    bool data_read = false; // flag for pre-existing data
 
     // load pre existing rois if they exist
     std::ifstream infile(output_file_name.c_str());
@@ -90,12 +89,15 @@ int main(int argc, char** argv ) {
 
     /*===========================   YOLO   =============================== */
 
-    #ifdef GPU
-
-    darknetUtil("yolo_torpedo.yaml")
-    classNames_ = darknetUtil.getClassNames();
-
-    #endif
+    std::unique_ptr<au_vision::DarknetUtil> darknetUtil;
+    //au_vision::DarknetUtil darknetUtil("yolo.yaml");
+    std::vector<std::string> className;
+    if(YOLO_AVAILABLE)
+    {
+        darknetUtil = std::make_unique<au_vision::DarknetUtil>("yolo.yaml");
+        className = darknetUtil->getClassNames();
+        std::cout << "Labeler has loaded YOLO" << std::endl;
+    }
 
     /*========================== main loop ================================*/ 
     while (!finished) {
@@ -189,43 +191,43 @@ int main(int argc, char** argv ) {
             step = 0;
         }
 
-        if (key_press == 'q') { // apply bound from YOLO
+        if ((key_press == 'q' && step == 0) || triggerYolo || (step == 1 && YOLO_AUTO_LABEL)) { // apply bound from YOLO
             if(YOLO_AVAILABLE)
             {
-                #ifdef GPU
-                // TODO
+                std::vector<std::vector<au_vision::YoloBox> > classedBoxes = darknetUtil->runYolo(frame);
+                std::cout << "Ran YOLO detect" << std::endl;
 
-                // Vector to be returned
-                std::vector<au_core::Roi> roiArray;
+                unsigned int num;
+                try {
+                    num = std::stoi(main_class_number);
+                }
+                catch(...)
+                {
+                    std::cout << "Failed to convert main class number to an integer" << std::endl;
+                }
+                if(classedBoxes.size() > num && classedBoxes[num].size())
+                {
+                    assert(num < classedBoxes.size());
+                    auto& box = classedBoxes[num][0];
+                    auto roi_selection = cv::Rect(box.x, box.y, box.w, box.h);
+                    rois[frame_index] = roi_selection;
 
-  std::vector<std::vector<YoloBox> > classedBoxes_ = darknetUtil.runYolo(frame);
-  // Convert YoloBoxes for ROS
-  for (int i = 0; i < classedBoxes_.size(); i++) {
-    std::string className = classNames_[i];
+                    // initialize tracker
+                    tracker.init(roi_selection, frame);
+                    track_object = true;
+                }
 
-    for (auto box : classedBoxes_[i]) {
-      // Calculate position and dimensions
-
-      auto w = (unsigned int)box.w;
-      auto h = (unsigned int)box.h;
-
-      au_core::Roi roi;
-      roi.topLeft.x = box.x;
-      roi.topLeft.y = box.y;
-      roi.width = w;
-      roi.height = h;
-
-      roi.tags.push_back(className);
-      roiArray.push_back(roi);
-    }
-  }
-  
-                #endif
+                triggerYolo = false;
             }
             else
             {
                 std::cout << "YOLO Disabled" << std::endl;
             }
+        }
+
+        if(key_press == 'a' && YOLO_AVAILABLE) { // toggle auto YOLO
+            YOLO_AUTO_LABEL = !YOLO_AUTO_LABEL;
+            std::cout << "YOLO Auto Labeling set to: " << YOLO_AUTO_LABEL << std::endl;
         }
 
         if (key_press == 'x') { // remove roi from frame
@@ -252,6 +254,10 @@ int main(int argc, char** argv ) {
             // do not go to next frame unless roi has been added to rois vector
             if(!continuous_play && (rois.size() > frame_index)) {
                 step = 1;
+            }
+            if(YOLO_AUTO_LABEL)
+            {
+                triggerYolo = true;
             }
         }
 
@@ -287,6 +293,10 @@ int main(int argc, char** argv ) {
         }
 
         frame_index += step;
+        if(step && YOLO_AUTO_LABEL)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(YOLO_WAIT_MS));
+        }
         if (frame_index >= image_count) { // video complete
             frame_index = image_count - 1;
             std::cout << "Video is complete. please press esc to end labeling or review it" << std::endl;

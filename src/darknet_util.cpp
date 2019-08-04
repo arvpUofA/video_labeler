@@ -6,8 +6,7 @@
  *
  */
 
-#include <src/yolo/darknet_util.h>
-#include <layer.h>
+#include "darknet_util.h"
 
 namespace au_vision {
 
@@ -35,9 +34,9 @@ void DarknetUtil::yoloInit(const std::string &yamlName) {
   char *weights;
   char **names;
 
-  const std::string packagePath = "./";
+  const std::string packagePath = ".";
   const std::string yamlFile = packagePath + "/params/" + yamlName;
-  std::cout << "Yaml file: " yamlFile.c_str() << std::endl;
+  std::cout << "Yaml file: " << yamlFile << std::endl;
   const YAML::Node conf = YAML::LoadFile(yamlFile);
   const auto classNames =
       yamlLoad<std::vector<std::string>>("class_names", conf);
@@ -77,12 +76,12 @@ void DarknetUtil::yoloInit(const std::string &yamlName) {
 
   // Free allocated memory
   for (int i = 0; i < numYoloClasses_; ++i) {
-    delete names[i];
+    delete[] names[i];
   }
   delete[] names;
 
-  delete weights;
-  delete cfg;
+  delete[] weights;
+  delete[] cfg;
 }
 
 template <typename T>
@@ -134,7 +133,6 @@ image DarknetUtil::matToImage(const cv::Mat &src) {
     memcpy(out.data + image_offset, channels[i].data,
            image_size * sizeof(float));
   }
-
   return out;
 }
 

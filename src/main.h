@@ -1,12 +1,16 @@
 #include <iostream>
 #include <algorithm>
+#include <memory>
 #include <fstream>
+#include <chrono>
+#include <thread>
 
 #include <experimental/filesystem> // c++ 17
 #include <boost/algorithm/string.hpp>
 
 #include <opencv2/opencv.hpp>
 #include "kcftracker.hpp"
+#include "darknet_util.h"
 
 namespace fs = std::experimental::filesystem;
 
@@ -197,7 +201,8 @@ void displayHelp() {
     std::cout << "\tGo backwards/forwards on frame: h | j" << std::endl;
     std::cout << "\tNon-destructive marking: w" << std::endl;
     std::cout << "\tReset(destructive marking on future frames): r" << std::endl;
-    std::cout << "\tUse YOLO model to predict bound: q" << std::endl;
+    std::cout << "\tUse YOLO model to predict bound (single): q" << std::endl;
+    std::cout << "\tToggle YOLO prediction on each new frame (auto): a" << std::endl;
     std::cout << "\tMark frame without object: x" << std::endl;
     std::cout << "\tMove to beginning: b" << std::endl;
     std::cout << "\tShow/hide info panel: t" << std::endl;

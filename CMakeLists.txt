@@ -12,8 +12,8 @@ if (OpenCV_FOUND)
    message("Includes: " ${OpenCV_INCLUDE_DIRS})
 endif(OpenCV_FOUND)
 
-# darknet
 
+# darknet sources
 # Define path of darknet folder here.
 find_path(DARKNET_PATH
 	NAMES "README.md"
@@ -72,46 +72,49 @@ set(DARKNET_SOURCE
   ${DARKNET_PATH}/src/yolo_layer.c
 )
 
-  ###################
-  ## Yolo Detector ##
-  ###################
+set(DARKNET_KERNELS
+  ${DARKNET_PATH}/src/activation_kernels.cu
+  ${DARKNET_PATH}/src/avgpool_layer_kernels.cu
+  ${DARKNET_PATH}/src/blas_kernels.cu
+  ${DARKNET_PATH}/src/col2im_kernels.cu
+  ${DARKNET_PATH}/src/convolutional_kernels.cu
+  ${DARKNET_PATH}/src/crop_layer_kernels.cu
+  ${DARKNET_PATH}/src/deconvolutional_kernels.cu
+  ${DARKNET_PATH}/src/dropout_layer_kernels.cu
+  ${DARKNET_PATH}/src/im2col_kernels.cu
+  ${DARKNET_PATH}/src/maxpool_layer_kernels.cu
+  ${DARKNET_PATH}/src/network_kernels.cu
+)
 
-  set(DARKNET_KERNELS
-    ${DARKNET_PATH}/src/activation_kernels.cu
-    ${DARKNET_PATH}/src/avgpool_layer_kernels.cu
-    ${DARKNET_PATH}/src/blas_kernels.cu
-    ${DARKNET_PATH}/src/col2im_kernels.cu
-    ${DARKNET_PATH}/src/convolutional_kernels.cu
-    ${DARKNET_PATH}/src/crop_layer_kernels.cu
-    ${DARKNET_PATH}/src/deconvolutional_kernels.cu
-    ${DARKNET_PATH}/src/dropout_layer_kernels.cu
-    ${DARKNET_PATH}/src/im2col_kernels.cu
-    ${DARKNET_PATH}/src/maxpool_layer_kernels.cu
-    ${DARKNET_PATH}/src/network_kernels.cu
-  )
+include_directories(
+  ${DARKNET_PATH}/src
+  ${DARKNET_PATH}/include
+)
 
+# darknet (use GPU because CPU is far too slow)
+set(USE_GPU 1)
+
+if(${USE_GPU})
+  message("Compiling for GPU")
+
+  add_definitions(-DGPU=1)
+
+  find_package(CUDA 10 REQUIRED)
   include_directories(
-    ${DARKNET_PATH}/src
-    ${DARKNET_PATH}/include
+    ${CUDA_INCLUDE_DIRS}
   )
 
-  add_library(darknet_util
-    src/yolo/darknet_util.cpp
+  link_directories(
+    "${CUDA_TOOLKIT_ROOT_DIR}/lib64"
   )
-  # create yolo detector library
-  cuda_add_library(yolo_detectors
-    src/detector.cpp
-    src/yolo/yolo_detector.cpp
+ 
+  cuda_add_library(yolo
+    src/darknet_util.cpp
     ${DARKNET_SOURCE}
     ${DARKNET_KERNELS}
   )
-
-  add_dependencies(yolo_detectors
-    ${PROJECT_NAME}_generate_messages_cpp
-    ${catkin_EXPORTED_TARGETS}
-  )
-
-  target_link_libraries(yolo_detector
+ 
+  target_link_libraries(yolo
     m
     pthread
     stdc++
@@ -119,18 +122,31 @@ set(DARKNET_SOURCE
     cudart
     cublas
     curand
-    darknet_util
     yaml-cpp
     ${Boost_LIBRARIES}
     ${OpenCV_LIBRARIES}
     ${catkin_LIBRARIES}
   )
-
-  set(DETECTORS_LINK_LIBRARIES
-    ${DETECTORS_LINK_LIBRARIES}
-    yolo_detectors
-  )
 else()
+  message("Compiling for CPU")
+ 
+  unset(GPU)
+ 
+  add_library(yolo
+    src/darknet_util.cpp
+    ${DARKNET_SOURCE}
+  )
+ 
+  target_link_libraries(yolo
+    m
+    pthread
+    stdc++
+    yaml-cpp
+    ${Boost_LIBRARIES}
+    ${OpenCV_LIBRARIES}
+    ${catkin_LIBRARIES}
+  )
+endif()
 
 include_directories( ${CMAKE_SOURCE_DIR}/tracker ${OpenCV_INCLUDE_DIRS} )
 
@@ -139,4 +155,4 @@ add_executable( VideoLabeler
     tracker/fhog.cpp
     src/main.cpp )
 
-target_link_libraries( VideoLabeler yolo_detector ${OpenCV_LIBS} stdc++fs)
+target_link_libraries( VideoLabeler yolo ${OpenCV_LIBS} stdc++fs)

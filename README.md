@@ -1,6 +1,6 @@
 # Video labeler
 
-Video labeling software with KCF tracker.  
+Video labeling software with KCF tracker and YOLO detector.
 Default In/Out Label Format: YOLO  
 yolo format: `class, centerX, centerY, box width, box height` (all in percentages of image size)  
 *Note: Labeler assumes that all images are the same size
@@ -10,6 +10,8 @@ yolo format: `class, centerX, centerY, box width, box height` (all in percentage
 After downloading the repository, open the project in Qt Creator. Then apply the following configurations:
 1. `cmake .`
 2. `make`
+
+Note: YOLO is very slow without a GPU. Edit the CMake file to enable GPU functionality if desired. This required CUDA >=10.
 
 ## Usage
 
@@ -39,10 +41,11 @@ The following keys will stop the tracking until <kbd>r</kbd> is used again: <kbd
 | <kbd>y</kbd> <kbd>u</kbd>  | Increase/Decrease up delay between frames |
 | <kbd>h</kbd> <kbd>j</kbd>    | Go backwards/forwards one frame |
 | <kbd>r</kbd>     | Reset (destructive marking). Draws ROI on frame and starts tracker for following frames |
+| <kbd>q</kbd>     | Use YOLO model to predict bound (single) |
+| <kbd>a</kbd>     | Toggle YOLO prediction on each new frame (auto) |
 | <kbd>t</kbd>     | Show/Hide info panel |
 | <kbd>Esc</kbd>   | Finish labeling |
 | <b>Key</b>       | <b>Action (These actions also stops the tracker on the next frame)</b> |
-| <kbd>h</kbd>     | Go backwards |
 | <kbd>w</kbd>     | Non-destructive marking. Draws ROI on frame but stops tracker |
 | <kbd>x</kbd>     | Mark frame without object |
 | <kbd>b</kbd>     | Move to beginning |
@@ -53,6 +56,7 @@ The following keys will stop the tracking until <kbd>r</kbd> is used again: <kbd
 | <kbd>space</kbd>             | Pause/Play |
 | <kbd>z</kbd>     | Save current ROIs to file |
 
+Note: try not to hold <kbd>j</kbd> (next frame) while YOLO auto labelling is enabled. The keyboard buffer build up, causing YOLO (and the GUI) to lag.
 
 ## Combining and checking labels
 
