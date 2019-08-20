@@ -7,10 +7,11 @@ int main(int argc, char** argv ) {
     bool KCF_LAB = false;
 
     bool YOLO_AVAILABLE = fs::exists("./params/yolo.yaml");
-    bool YOLO_AUTO_LABEL = true;
+    bool YOLO_AUTO_LABEL = false;
     int YOLO_WAIT_MS = 50;
 
     std::cout << "YOLO assistance availability: " << YOLO_AVAILABLE << std::endl;
+    std::cout << "Defaulting automatic YOLO labelling to off" << std::endl;
 
     if(argc <= 2) { // read the input image folder name
         std::cerr << "Usage: ./VideoLabeler input_folder {class number}" << std::endl;
@@ -195,8 +196,12 @@ int main(int argc, char** argv ) {
         if ((key_press == 'q' && step == 0) || triggerYolo || (step == 1 && YOLO_AUTO_LABEL)) { // apply bound from YOLO
             if(YOLO_AVAILABLE)
             {
+                std::cout << "Starting YOLO on this frame" << std::endl;
+                clock_t start = std::clock();
                 std::vector<std::vector<au_vision::YoloBox> > classedBoxes = darknetUtil->runYolo(frame);
-                std::cout << "Ran YOLO detect" << std::endl;
+                clock_t end = std::clock();
+                double elapsed = double(end - start) / CLOCKS_PER_SEC;
+                std::cout << "Ran YOLO detect (" << elapsed << "s)" << std::endl;
 
                 unsigned int num;
                 try {
