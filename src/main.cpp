@@ -194,6 +194,7 @@ int main(int argc, char** argv ) {
         }
 
         if ((key_press == 'q' && step == 0) || triggerYolo || (step == 1 && YOLO_AUTO_LABEL)) { // apply bound from YOLO
+            triggerYolo = false;
             if(YOLO_AVAILABLE)
             {
                 std::cout << "Starting YOLO on this frame" << std::endl;
