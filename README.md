@@ -18,7 +18,7 @@ Note: YOLO is very slow without a GPU. Edit the CMake file to enable GPU functio
 `./VideoLabeler path_to_images {class_number}`
 
 *Note: class_number must be a int and all classes must be continuous for combineLabels.py to work
-*Note: dump a yolo.weights into ./weights, a yolo.cfg into ./cfg, and yolo.yaml into ./params to use assisted labelling with YOLO. If a .yaml file is not detected, YOLO will be disabled.
+*Note: dump a yolo.weights into ./weights, a yolo.cfg into ./cfg, and yolo.yaml into ./params to use assisted labelling with YOLO. If a .yaml file is not detected, YOLO will be disabled. The .yaml file must be named "yolo.yaml". The class number used to start the labeller must correspond to the class number in the .yaml file.
 
 
 ## Optional Usage
